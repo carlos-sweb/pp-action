@@ -1,1 +1,1 @@
-# pp-action
+# pp-action.js
