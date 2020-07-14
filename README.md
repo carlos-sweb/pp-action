@@ -8,6 +8,8 @@
 
 ## Security
 
+If you find a security vulnerability, please send an email to [mailto:c4rl0sill3sc4@gmail.com](c4rl0sill3sc4@gmail.com)
+
 ## License
 
 Copyright © 2019-2020 Carlos Illesca and contributors
