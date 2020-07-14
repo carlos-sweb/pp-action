@@ -8,7 +8,7 @@
 
 ## Security
 
-If you find a security vulnerability, please send an email to [mailto:c4rl0sill3sc4@gmail.com](c4rl0sill3sc4@gmail.com)
+If you find a security vulnerability, please send an email to [c4rl0sill3sc4@gmail.com](mailto:c4rl0sill3sc4@gmail.com)
 
 ## License
 
