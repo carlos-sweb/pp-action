@@ -7,42 +7,32 @@
 ## Use
 
 ```javascript
-function test(){
-	console.log("Hello world!");
-}
- 
-(function(){
-    var box = function(){
-        return box.fn.init();
-    };
 
-    box.prototype = box.fn = {
-        init : function(){
-            console.log('box.init()');
+import View from 'pp-action.js';
 
-			return this;
-        },
-
-		add : function(str){
-			alert("add", str);
-
-			return this;
-		},
-
-		remove : function(str){
-			alert("remove", str);
-
-			return this;
+var view = new View({
+	el:"[pp-view]",
+	data:{
+		title:"hello Word",
+		show:true
+	},
+	methods:{
+		hello(){
+			alert("Hello !!");
 		}
-    };
-    
-    box.fn.init.prototype = box.fn;
-    
-    window.box =box;
-})();
+	},
+	template:`
+		<div>
+			<h1 pp-text='title' ></h1>
+			<hr>
+			<h2 pp-show='show' >Show Text<h2>
+			<button pp-text='show ? \'Hide\':\'Show\'' pp-click='show=!show' ><button>
+			<br>
+			<button pp-click='hello()' >Hello</button>
+		</div>`
+});
 
-var testBox = box();
-testBox.add("jQuery").remove("jQuery");
+
 ```
 
 ## Directives
