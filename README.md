@@ -2,6 +2,8 @@
 
 ## Install
 
+`$ npm install pp-action --save`
+
 ## Use
 
 ## Directives
