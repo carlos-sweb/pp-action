@@ -2,7 +2,7 @@
 
 ## Install
 
-`$ npm install pp-action --save`
+`npm install pp-action --save`
 
 ## Use
 
