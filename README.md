@@ -38,6 +38,7 @@ var view = new View({
 ## Directives
 
 | Directive | Description |
+| ------ | ------ |
 | pp-text | ...... |
 | pp-show |......|
 | pp-html |......|
