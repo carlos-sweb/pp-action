@@ -46,11 +46,17 @@ var view = new View({
 | pp-style|......|
 | pp-class|......|
 
+___
 ### pp-text
+___
 ### pp-show
+___
 ### pp-html
+___
 ### pp-bind
+___
 ### pp-style
+___
 ### pp-class
 
 ## Security
