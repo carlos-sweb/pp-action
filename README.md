@@ -37,6 +37,14 @@ var view = new View({
 
 ## Directives
 
+| Directive | Description |
+| pp-text | ...... |
+| pp-show |......|
+| pp-html |......|
+| pp-bind |......|
+| pp-style|......|
+| pp-class|......|
+
 If you find a security vulnerability, please send an email to [c4rl0sill3sc4@gmail.com](mailto:c4rl0sill3sc4@gmail.com)
 
 ## License
