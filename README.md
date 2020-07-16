@@ -47,7 +47,7 @@ var view = new View({
 | pp-class|......|
 
 ___
-### pp-text
+### <code>pp-text</code>
 ___
 ### pp-show
 ___
