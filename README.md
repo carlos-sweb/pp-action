@@ -49,15 +49,15 @@ var view = new View({
 ___
 ### <code>pp-text</code>
 ___
-### pp-show
+### <code>pp-show</code>
 ___
-### pp-html
+### <code>pp-html</code>
 ___
-### pp-bind
+### <code>pp-bind</code>
 ___
-### pp-style
+### <code>pp-style</code>
 ___
-### pp-class
+### <code>pp-class</code>
 
 ## Security
 
