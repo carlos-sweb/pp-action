@@ -51,6 +51,7 @@ ___
 
 <p><strong>Example:</strong><code>&#60;h1 pp-text="myText" >&#60;/h1&#62;</code></p>
 <p><strong>Structure:</strong><code>&#60;h1 pp-text="[expression]" >&#60;/h1&#62;</code></p>
+
 ___
 ### <code>pp-show</code>
 
