@@ -57,8 +57,8 @@ ___
 ___
 ### <code>pp-show</code>
 
-<strong>Example:</strong><code>&#60;div pp-show="show" >&#60;/div&#62;</code>
-<strong>Structure:</strong><code>&#60;div pp-show="[expression]" >&#60;/div&#62;</code>
+<p><strong>Example:</strong><code>&#60;div pp-show="show" >&#60;/div&#62;</code></p>
+<p><strong>Structure:</strong><code>&#60;div pp-show="[expression]" >&#60;/div&#62;</code></p>
 <p><code>pp-show</code> toggles property display if is true <code>display:block</code> else if false <code>display:none</code></p>
 
 ___
