@@ -48,16 +48,34 @@ var view = new View({
 
 ___
 ### <code>pp-text</code>
+
+<strong>Example:</strong><code><h1 pp-text="myText" ></h1></code>
+<strong>Structure:</strong><code><h1 pp-text="[expression]" ></h1></code>
 ___
 ### <code>pp-show</code>
+
+<strong>Example:</strong><code></code>
+<strong>Structure:</strong><code></code>
 ___
 ### <code>pp-html</code>
+
+<strong>Example:</strong><code></code>
+<strong>Structure:</strong><code></code>
 ___
 ### <code>pp-bind</code>
+
+<strong>Example:</strong><code></code>
+<strong>Structure:</strong><code></code>
 ___
 ### <code>pp-style</code>
+
+<strong>Example:</strong><code></code>
+<strong>Structure:</strong><code></code>
 ___
 ### <code>pp-class</code>
+
+<strong>Example:</strong><code></code>
+<strong>Structure:</strong><code></code>
 
 ## Security
 
