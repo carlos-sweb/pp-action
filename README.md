@@ -49,8 +49,8 @@ var view = new View({
 ___
 ### <code>pp-text</code>
 
-<strong>Example:</strong><code><h1 pp-text="myText" ></h1></code>
-<strong>Structure:</strong><code><h1 pp-text="[expression]" ></h1></code>
+<strong>Example:</strong><code>&#60;h1 pp-text="myText" >&#60;/h1&#62;</code>
+<strong>Structure:</strong><code>&#60;h1 pp-text="[expression]" >&#60;/h1&#62;</code>
 ___
 ### <code>pp-show</code>
 
