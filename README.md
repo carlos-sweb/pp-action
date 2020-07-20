@@ -40,7 +40,7 @@ var view = new View({
 | Directive | Description |
 | ------ | ------ |
 | pp-text | This directive update the property <code><small>innerText</small></code> |
-| pp-show |......|
+| pp-show | This directive change property <code><small>display</small></code> from element style |
 | pp-html |......|
 | pp-bind |......|
 | pp-style|......|
