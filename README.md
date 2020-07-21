@@ -6,7 +6,7 @@
 
 ## Live Demo
 
-`npm install pp-action --save`
+Check [Live Demo](https://ppaction.netlify.app)
 
 ## Use
 
