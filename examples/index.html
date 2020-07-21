@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>pp-action -- Examples</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.0/css/bulma.min.css">
+</head>
+<body>
+
+<br>
+<div pp-view='example1' >
+	
+
+
+</div>	
+
+
+
+<script src="../pp-action.js" ></script>	
+<script>
+	
+	var view = new ppView({
+		el:"[pp-view='example1']",
+		template:'<h1 data-algo="aa" pp-click="hi($el)" class="title is-1" pp-text="helloword" ></h1>',
+		data:{
+			helloword:"Hello Word !!!"
+		},
+		methods:{
+			hi($el){
+
+				var algo = $el.getAttribute("data-algo");
+
+				console.log(algo);
+
+			}
+		},
+		filters:{}
+	});
+
+
+	
+
+</script>
+</body>
+</html>

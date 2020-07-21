@@ -4,6 +4,10 @@
 
 `npm install pp-action --save`
 
+## Live Demo
+
+`npm install pp-action --save`
+
 ## Use
 
 ```javascript
