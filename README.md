@@ -6,7 +6,7 @@
 
 ## Live Demo
 
-Check [Live Demo](https://ppaction.netlify.app)
+Check [Live Demo](https://ppaction.netlify.app){:target="_blank"}
 
 ## Use
 
