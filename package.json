@@ -1,0 +1,33 @@
+{
+  "name": "pp-action",
+  "version": "1.0.0",
+  "description": "Simple Library Javascript Reactive",
+  "main": "pp-action.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-es2015": "^6.24.1",
+    "core-js": "^3.6.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "npx babel pp-action.js --config-file ./babel.config.json  -o pp-action-babeljs.js && uglifyjs pp-action-babeljs.js -o pp-action.min.js && terser pp-action-babeljs.js -o pp-action.terser.min.js && cp pp-action.min.js ./examples/pp-action.min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlos-sweb/pp-action.git"
+  },
+  "keywords": [
+    "Library",
+    "Reactive"
+  ],
+  "author": "Carlos Illesca",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/carlos-sweb/pp-action/issues"
+  },
+  "homepage": "https://github.com/carlos-sweb/pp-action#readme"
+}
