@@ -68,23 +68,26 @@ ___
 ___
 ### <code>pp-html</code>
 
-<strong>Example:</strong><code></code>
+<strong>Example:</strong><code></code><br>
 <strong>Structure:</strong><code></code>
 ___
 ### <code>pp-bind</code>
 
-<strong>Example:</strong><code></code>
+<strong>Example:</strong><code></code><br>
 <strong>Structure:</strong><code></code>
+<p><code>pp-bind</code> manipue the attributes from elements toggled value the attribute</p>
 ___
 ### <code>pp-style</code>
 
-<strong>Example:</strong><code></code>
+<strong>Example:</strong><code></code><br>
 <strong>Structure:</strong><code></code>
+<p><code>pp-style</code> This directive manipule the list property style from element</p>
 ___
 ### <code>pp-class</code>
 
-<strong>Example:</strong><code></code>
+<strong>Example:</strong><code></code><br>
 <strong>Structure:</strong><code></code>
+<p><code>pp-class</code> add and remove class from element, depending if the expression resolve boolean expresion</p>
 
 ## Security
 
