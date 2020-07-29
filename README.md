@@ -74,7 +74,7 @@ ___
 ___
 ### <code>pp-bind</code>
 
-<strong>Example:</strong><code></code><br>
+<strong>Example:</strong><code>&#60;div pp-bind="{'data-main':MyConditional ? 'data1':'data2'}" >&#60;/div&#62;</code><br>
 <strong>Structure:</strong><code></code>
 <p><code>pp-bind</code> manipue the attributes from elements toggled value the attribute</p>
 
