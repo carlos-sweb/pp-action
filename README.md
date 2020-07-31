@@ -81,15 +81,15 @@ ___
 ___
 ### <code>pp-style</code>
 
-<strong>Example:</strong><code></code><br>
-<strong>Structure:</strong><code></code>
+<strong>Example:</strong><code>&#60;div pp-style="{'color':'red','background':MyBackground}" >&#60;/div&#62;</code><br>
+<strong>Structure:</strong><code>&#60;div pp-style="{'color':[expression],'background':[expression]}" >&#60;/div&#62;</code>
 <p><code>pp-style</code> This directive manipule the list property style from element</p>
 
 ___
 ### <code>pp-class</code>
 
-<strong>Example:</strong><code></code><br>
-<strong>Structure:</strong><code></code>
+<strong>Example:</strong><code>&#60;div pp-class="{'Myclass1':true,'MyClass2':show == true}" >&#60;/div&#62;</code><br>
+<strong>Structure:</strong><code>&#60;div pp-class="{'Myclass1':[expression],'MyClass2':[expression]}" >&#60;/div&#62;</code>
 <p><code>pp-class</code> add and remove class from element, depending if the expression resolve boolean expresion</p>
 
 ## Security
