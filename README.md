@@ -121,7 +121,10 @@ ___
 
 ##  Model
 
-	
+<strong>Example:</strong><code>&#60;input pp-model="email" /&#62;</code><br>
+<strong>Structure:</strong><code>&#60;input pp-model="[data item]" /&#62;</code>
+
+
 
 ## Security
 
