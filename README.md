@@ -98,6 +98,17 @@ ___
 
 <strong>pp-[event]</strong>
 
+| Event Mouse |
+| ------ |
+|click|
+|dblclick|
+|mousedown|
+|mousemove|
+|mouseout|
+|mouseover|
+|mouseup|
+|wheel|
+
 ## Security
 
 If you find a security vulnerability, please send an email to [c4rl0sill3sc4@gmail.com](mailto:c4rl0sill3sc4@gmail.com)
