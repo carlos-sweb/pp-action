@@ -68,8 +68,10 @@ ___
 ___
 ### <code>pp-html</code>
 
-<strong>Example:</strong><code></code><br>
-<strong>Structure:</strong><code></code>
+<strong>Example:</strong><code>&#60;div pp-html="MyHtml" >&#60;/div&#62;</code><br>
+<strong>Structure:</strong><code>&#60;div pp-html="[expression]" >&#60;/div&#62;</code>
+
+<p><code>pp-html</code> update the innerHTML call var from data or expression javascript, the children injection is render all directives, model and events</p>
 
 ___
 ### <code>pp-bind</code>
