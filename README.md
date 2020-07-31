@@ -94,6 +94,10 @@ ___
 <strong>Structure:</strong><code>&#60;div pp-class="{'Myclass1':[expression],'MyClass2':[expression]}" >&#60;/div&#62;</code>
 <p><code>pp-class</code> add and remove class from element, depending if the expression resolve boolean expresion</p>
 
+## Events
+
+<strong>pp-[event]</strong>
+
 ## Security
 
 If you find a security vulnerability, please send an email to [c4rl0sill3sc4@gmail.com](mailto:c4rl0sill3sc4@gmail.com)
