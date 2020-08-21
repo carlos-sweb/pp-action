@@ -119,6 +119,12 @@ ___
 <strong>Structure:</strong><code>&#60;div pp-click="[expression]" pp-dblclick="[expression]" >&#60;/div&#62;</code>
 <p><code>pp-[events]</code>Directive lisen event from javascript</p>
 
+##  Filter
+
+<strong>Example:</strong><code>&#60;div pp-text="MyVar|MyFilter"  >&#60;/div&#62;</code><br>
+<strong>Structure:</strong><code>&#60;div pp-text="[expression]|[expresion]"  >&#60;/div&#62;</code>
+<p><code>pp-[events]</code>Function call for filter result.</p>
+
 ##  Model
 
 <strong>Example:</strong><code>&#60;input pp-model="email" /&#62;</code><br>

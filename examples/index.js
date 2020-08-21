@@ -1,6 +1,6 @@
 var view = new ppView({
 		el:"[pp-view='example1']",
-		template:'<h1 data-algo="aa" pp-click="hi($el)" class="title is-1" pp-text="helloword" ></h1>',
+		template:'<h1 data-algo="aa" pp-click="hi($el)" class="title is-1" pp-text="helloword|helloFilter|addText" ></h1>',
 		data:{
 			helloword:"Hello Word !!!"
 		},
@@ -13,5 +13,17 @@ var view = new ppView({
 
 			}
 		},
-		filters:{}
-	});
+		filters:{
+			helloFilter( text ){
+
+				const result =  text+" Text Add ";
+
+				return result;
+			},
+			addText( text ){
+
+				return text+" * Add more test";
+				
+			}
+		}
+});
