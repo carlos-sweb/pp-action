@@ -123,7 +123,7 @@ ___
 
 <strong>Example:</strong><code>&#60;div pp-text="MyVar|MyFilter"  >&#60;/div&#62;</code><br>
 <strong>Structure:</strong><code>&#60;div pp-text="[expression]|[expresion]"  >&#60;/div&#62;</code>
-<p><code>pp-[events]</code>Function call for filter result.</p>
+<p><code>pp-[any-directive]</code>Function call for filter result.</p>
 
 ##  Model
 
