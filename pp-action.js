@@ -240,7 +240,14 @@
     *@var el
     *@description element html 
     **/
-    this.el = document.querySelector( options.el || null );                    
+    this.el = document.querySelector( options.el || null );
+    /**
+    *@var watch
+    *@type Object
+    *@description - objeto que contiene los datos de las funciones que 
+    *estan observando los valores de cambio 
+    **/
+    this.watch = options.watch || {};                 
     /**
     *@var data
     *@type Object
@@ -308,11 +315,18 @@
               if( data.hasOwnProperty(key) ){
                  
                  if( data[key] != this.data[key] ){
-                   this.emit('dataChange');    
+
+                   console.log("Hay que ejecutar watch");
+
+                   this.emit('dataChange');
+
                    break;
 
                  };
+
               }else{
+                
+                console.log("Hay que ejecutar watch");
 
                 this.emit('dataChange');
 
@@ -320,6 +334,16 @@
 
               }
           }
+    }
+    /**
+    *@var handleDisabledDirective
+    *@type Function
+    *@description - directive que manipula la propiedad disabled del elemento
+    **/
+    this.handleDisabledDirective = function( el , output ){
+        if( typeof output == 'boolean' && ['INPUT','SELECT','BUTTON','TEXTAREA'].indexOf(el.tagName) != -1 ){          
+          el.disabled = output;
+        }
     }
     /*
     *@var  handleTextDirective
@@ -363,6 +387,115 @@
       el.style.display =  output ? 'block':'none';  
 
     }
+    /**
+    *@var initializeModel
+    *@type Function
+    *@description - Directive que se encarga de manipular las entradas input y select, provenientes de 
+    * una formulario si fuese necesario
+    **/
+    this.initializeModel = function( el ){
+
+      var tagInputAccept = [ 'INPUT', 'SELECT', 'TEXTAREA' ];
+
+      var el = el || this.el;
+
+      var attrEls = el.querySelectorAll( '[pp-model]' );     
+
+      if( attrEls.length > 0 ){
+        
+        attrEls.forEach(( attrEl )=>{
+
+          if( tagInputAccept.indexOf( attrEl.tagName ) != -1 ){
+
+            switch( attrEl.tagName ){
+              case 'INPUT':                                   
+                  this.modelInput( attrEl );
+                  // execute model input
+              break;
+              case 'SELECT':
+                  
+                  console.log("Select .......");
+                  // execute model select
+
+              break;
+              case 'TEXTAREA':
+                  
+                  console.log("Textarea .......");
+                  // execute model textarea
+
+              break;
+
+            }            
+          }      
+        });
+      }
+    }
+
+    /**
+    *@var modelInput
+    *@type Function
+    *@description - Function especifica que se le aplica al input tag
+    **/
+
+
+    https://cl-a3-p-e-br5.cdn.mdstrm.com/live-stream-secure/53d2c1a32640614e62a0e000/publish/media_2400.m3u8
+
+
+    this.modelInput = function( input ){
+
+        //-------------------------------------------------------------------
+
+        var model         = input.getAttribute("pp-model");
+        
+        var debounce      = input.getAttribute("pp-model-debounce");        
+
+        var debounceValue = debounce == null ? 0 : parseInt(debounce);
+
+        var type = input.type.toLowerCase();        
+        //-------------------------------------------------------------------
+        if( this.data.hasOwnProperty(model) ){
+
+          input.value = this.data[model].toString();
+
+        }
+        //-------------------------------------------------------------------
+        var debounceFunction = this.debounce(( event )=>{          
+
+          if( this.data[model].toString() !== event.target.value  ){
+
+            if( this.watch.hasOwnProperty(model) ){
+                if( typeof this.watch[model] == 'function' ){
+                  try{
+                    this.watch[model]( event.target.value ,this.data[model] , event);
+                  }catch(errorWatch){
+                    console.log(errorWatch);
+                  }                  
+                }
+
+            }
+            // dependiendo del tipo
+            switch( type ){
+              case 'text':
+                  this.data[model] = event.target.value;
+              break;
+            }            
+            
+            this.emit('dataChange');
+
+          }
+
+        },debounceValue);
+        //-------------------------------------------------------------------
+        this.lisenEvent.keyboard.forEach(( eventName )=>{
+
+          input.addEventListener( eventName , debounceFunction );
+
+        });
+        //-------------------------------------------------------------------
+
+     
+    }
+
     // ---------------------------------------------------------------------
     /**
     *@var initializeDirectivesComplex
@@ -516,7 +649,7 @@
 
         var el = el || this.el;
 
-        var attributesCatch = [ 'text' , 'html' , 'show'];
+        var attributesCatch = [ 'text' , 'html' , 'show', 'disabled' ];
 
               attributesCatch.forEach((attrCatch)=>{
 
@@ -587,6 +720,12 @@
                           this.handleHtmlDirective( attrEl , output);
 
                          break;
+                         case 'disabled':
+
+                          this.handleDisabledDirective( attrEl , output );
+
+                         break;
+
                       }
 
                     });
@@ -656,17 +795,21 @@
             } );
         };
       });
-       this.initializeDirectivesAll( el );
+
+      this.initializeModel( el );
+
+      this.initializeDirectivesAll( el );
     }
-  // ---------------------------------------------------------------------  
+  // ---------------------------------------------------------------------   
   /**
   *@var initializeDirevesAll
   *@type Function
   */
-  this.initializeDirectivesAll = function( el ){
+  this.initializeDirectivesAll = function( el ){    
 
     this.initializeDirectives( el );
-    this.initializeDirectivesComplex( el );
+
+    this.initializeDirectivesComplex( el );       
 
   }
   // ---------------------------------------------------------------------

@@ -23,7 +23,54 @@ var view = new ppView({
 			addText( text ){
 
 				return text+" * Add more test";
-				
+
 			}
 		}
+});
+
+var viewModel = new ppView({
+
+	el:"[pp-view='models']",
+
+	template:`
+			<h1 pp-text="myVar"></h1>
+			<button pp-disabled="myVar == 'hola' " >AAA</button>
+			<input class="input" pp-model="myVar" type="text" pp-model-debounce="150"/>
+			<div pp-for="list" >
+				<div pp-for-template >
+					<h3 pp-for-text="list.name" ></h3>
+					<p pp-for-text="list.description" ></p>
+				</div>
+			</div>
+
+			`,
+
+	data:{
+		myVar:'Text in Input',
+
+		username : 'CarlosIllesca',
+
+		list:[{
+			name : "Productos 1",
+			price : 3000,
+			description:"UAhahqhsuhuwhsw ijswijsiw"
+		},{
+			name : "Productos 2",
+			price : 5000,
+			description: "AOKAAOKAOAKOAKOAKOA"
+		}]
+	},
+
+	watch:{
+		myVar:function( newValue , oldValue , event){
+
+				console.log( oldValue );
+				console.log( newValue);
+
+				if( newValue == 'Carlos Illesca' ){
+						alert("Hola Carloncho");
+				}
+		}
+	}
+
 });

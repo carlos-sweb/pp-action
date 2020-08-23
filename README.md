@@ -66,6 +66,13 @@ ___
 <p><code>pp-show</code> toggles property display if is true <code>display:block</code> else if false <code>display:none</code></p>
 
 ___
+### <code>pp-disabled</code>
+
+<p><strong>Example:</strong><code>&#60;div pp-disabled="disabled" >&#60;/div&#62;</code></p>
+<p><strong>Structure:</strong><code>&#60;div pp-disabled="[expression]" >&#60;/div&#62;</code></p>
+<p><code>pp-disabled</code> toggles property disabled if is true , in tagname INPUT,SELECT,BUTTON and TEXTAREA</p>
+
+___
 ### <code>pp-html</code>
 
 <strong>Example:</strong><code>&#60;div pp-html="MyHtml" >&#60;/div&#62;</code><br>
@@ -129,6 +136,8 @@ ___
 
 <strong>Example:</strong><code>&#60;input pp-model="email" /&#62;</code><br>
 <strong>Structure:</strong><code>&#60;input pp-model="[data item]" /&#62;</code>
+
+<strong>pp-model-debounce (milliseconds) </strong>
 
 
 
