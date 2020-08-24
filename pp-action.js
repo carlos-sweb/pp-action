@@ -1,5 +1,5 @@
 /*!!
- * Power Panel View <http://github.com/millermedeiros/hasher>
+ * Power Panel View <https://github.com/carlos-sweb/pp-action>
  * @author Carlos Illesca
  * @version 1.0.0 (2020/01/01 03:18 PM)
  * Released under the MIT License
@@ -247,7 +247,17 @@
     *@description - objeto que contiene los datos de las funciones que 
     *estan observando los valores de cambio 
     **/
-    this.watch = options.watch || {};                 
+    this.watch = options.watch || {};
+    
+    /**
+    *@var form
+    *@type Object
+    *@description - objecto que contiene los formularios   
+    **/
+    this.form = options.form || {};
+
+    this.$form = {};
+
     /**
     *@var data
     *@type Object
@@ -304,7 +314,7 @@
     *@description - Funcion detecting Change detecta los cambios en un objeto de data para la vista
     *
     */
-    this.detectingChangeData = function( data ){
+    this.detectingChangeData = function( data , NativeEvent ){
 
         const keys = Object.keys( data );
 
@@ -316,7 +326,12 @@
                  
                  if( data[key] != this.data[key] ){
 
-                   console.log("Hay que ejecutar watch");
+                   // execute watch function
+                   if( this.watch.hasOwnProperty(key) ){
+                     if( typeof this.watch[key] == 'function' ){
+                        this.watch[key](data[key],this.data[key],NativeEvent);
+                     }  
+                   }
 
                    this.emit('dataChange');
 
@@ -325,8 +340,13 @@
                  };
 
               }else{
-                
-                console.log("Hay que ejecutar watch");
+
+               // execute watch function 
+               if( this.watch.hasOwnProperty(key) ){
+                 if( typeof this.watch[key] == 'function' ){
+                    this.watch[key](data[key],this.data[key],NativeEvent);
+                 }  
+               }
 
                 this.emit('dataChange');
 
@@ -334,6 +354,40 @@
 
               }
           }
+    }
+
+    this.handleFormDirective = function( el ){
+
+        console.log( el );
+
+    }
+    /**
+    *@var handleRequiredDirective
+    *@type Function
+    *@description - Esta directiva afecta la propiedad de required de un input
+    */
+    this.handleRequiredDirective = function( el, output ){
+      if( typeof output == 'boolean' && ['INPUT','TEXTAREA'].indexOf(el.tagName) != -1 ){
+            if( output ){
+              el.setAttribute('required','');
+            }else{
+              el.removeAttribute('required');
+            }                       
+        }
+    }
+    /*
+    *@var handleReadonlyDirective
+    *@type Function
+    *@description - Directive que afecta la propiedad solo lectura de los input y textareas
+    */
+    this.handleReadonlyDirective = function( el , output){
+        if( typeof output == 'boolean' && ['INPUT','TEXTAREA'].indexOf(el.tagName) != -1 ){
+            if( output ){
+              el.setAttribute('readonly','');
+            }else{
+              el.removeAttribute('readonly');
+            }                       
+        }
     }
     /**
     *@var handleDisabledDirective
@@ -649,7 +703,14 @@
 
         var el = el || this.el;
 
-        var attributesCatch = [ 'text' , 'html' , 'show', 'disabled' ];
+        var attributesCatch = [ 
+                  'text' , 
+                  'html' , 
+                  'show', 
+                  'disabled' ,
+                  'readonly', 
+                  'required',
+                  'form'];
 
               attributesCatch.forEach((attrCatch)=>{
 
@@ -726,6 +787,22 @@
 
                          break;
 
+                         case 'readonly':
+                          this.handleReadonlyDirective( attrEl , output ); 
+                         break;
+
+                         case 'required':
+                           
+                           this.handleRequiredDirective( attrEl , output );
+
+                         break;
+
+                         case 'form':
+
+                           this.handleFormDirective( attrEl );
+
+                         break;
+
                       }
 
                     });
@@ -740,15 +817,30 @@
 
         var expression =  el.getAttribute( 'pp-'+EventName );
 
+        // seccion de formulario
+        var form = null;
+
+        if( el.tagName == 'FORM' ){
+          if( el.hasAttribute('name') ){
+             if( this.$form.hasOwnProperty(el.getAttribute('name')) ){
+               form = this.$form[el.getAttribute('name')];
+             }   
+          }
+
+        }
+        // seccion de formulario
+
         var handle = ( NativeEvent )=>{
 
-          var $data = { ...this.data };                  
-
+          var $data = { ...this.data };
+          // Variables magicas 
           var $dataTemporal = Object.assign({...this.data},{
 
             $el    : el,
 
-            $event : NativeEvent
+            $event : NativeEvent,
+
+            $form : form
 
           });
 
@@ -758,7 +850,7 @@
             //console.log( messageError );
           }
           this.data = { ...this.omit( $dataTemporal , '$el' ,'$event' ) };
-          this.detectingChangeData( $data ); 
+          this.detectingChangeData( $data , NativeEvent); 
           if( typeof done == 'function' ){
             done( handle );
           };
@@ -774,8 +866,10 @@
     * librearia
     *@param el - > Objecto  de del Dom a Inicializar
     */
-    this.initialize = function( el ){      
+    this.initialize = function( el ){
+
       var el = el || this.el;
+      
       this.lisenEvent['mouse'].forEach(( lEvent )=>{
         const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
         if( ElementEvent.length > 0 ){
@@ -785,11 +879,73 @@
         };
       });
 
-      this.lisenEvent['mouse'].forEach(( lEventOnce )=>{
+      this.lisenEvent['mouse'].forEach(( lEventOnce )=>{        
         const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
         if( ElementEvent.length > 0 ){
             ElementEvent.forEach( ( ElEventOnce )=>{
                this.HelperFunctionInitialize( ElEventOnce , lEvent+'-once' , ( handle )=>{
+                   ElEventOnce.removeEventListener(lEvent,handle);
+               } );
+            } );
+        };
+      });
+
+
+      this.lisenEvent['keyboard'].forEach(( lEvent )=>{        
+        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
+        if( ElementEvent.length > 0 ){
+            ElementEvent.forEach( ( ElEvent ) => {
+              this.HelperFunctionInitialize( ElEvent , lEvent );
+            } );
+        };
+      });
+
+      this.lisenEvent['keyboard'].forEach(( lEventOnce )=>{
+        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
+        if( ElementEvent.length > 0 ){
+            ElementEvent.forEach( ( ElEventOnce )=>{
+               this.HelperFunctionInitialize( ElEventOnce , lEventOnce+'-once' , ( handle )=>{
+                   ElEventOnce.removeEventListener(lEvent,handle);
+               } );
+            } );
+        };
+      });
+
+
+      this.lisenEvent['drag'].forEach(( lEvent )=>{        
+        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
+        if( ElementEvent.length > 0 ){
+            ElementEvent.forEach( ( ElEvent ) => {
+              this.HelperFunctionInitialize( ElEvent , lEvent );
+            } );
+        };
+      });
+
+      this.lisenEvent['drag'].forEach(( lEventOnce )=>{
+        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
+        if( ElementEvent.length > 0 ){
+            ElementEvent.forEach( ( ElEventOnce )=>{
+               this.HelperFunctionInitialize( ElEventOnce , lEventOnce+'-once' , ( handle )=>{
+                   ElEventOnce.removeEventListener(lEvent,handle);
+               } );
+            } );
+        };
+      });
+
+      this.lisenEvent['form'].forEach(( lEvent )=>{        
+        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
+        if( ElementEvent.length > 0 ){
+            ElementEvent.forEach( ( ElEvent ) => {
+              this.HelperFunctionInitialize( ElEvent , lEvent );
+            } );
+        };
+      });
+
+      this.lisenEvent['form'].forEach(( lEventOnce )=>{
+        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
+        if( ElementEvent.length > 0 ){
+            ElementEvent.forEach( ( ElEventOnce )=>{
+               this.HelperFunctionInitialize( ElEventOnce , lEventOnce+'-once' , ( handle )=>{
                    ElEventOnce.removeEventListener(lEvent,handle);
                } );
             } );

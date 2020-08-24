@@ -45,7 +45,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   }
 })(function (root, ppView) {
   return function (options) {
-    var _this5 = this;
+    var _this7 = this;
 
     // ------------------------------------------------
 
@@ -245,6 +245,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
     this.el = document.querySelector(options.el || null);
     /**
+    *@var watch
+    *@type Object
+    *@description - objeto que contiene los datos de las funciones que 
+    *estan observando los valores de cambio 
+    **/
+
+    this.watch = options.watch || {};
+    /**
     *@var data
     *@type Object
     *@description - objeto que contiene los datos a manipular 
@@ -308,7 +316,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     *
     */
 
-    this.detectingChangeData = function (data) {
+    this.detectingChangeData = function (data, NativeEvent) {
       var keys = Object.keys(data);
 
       for (var i = 0; i < keys.length; i++) {
@@ -316,15 +324,73 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         if (data.hasOwnProperty(key)) {
           if (data[key] != this.data[key]) {
+            // execute watch function
+            if (this.watch.hasOwnProperty(key)) {
+              if (typeof this.watch[key] == 'function') {
+                this.watch[key](data[key], this.data[key], NativeEvent);
+              }
+            }
+
             this.emit('dataChange');
             break;
           }
 
           ;
         } else {
+          // execute watch function 
+          if (this.watch.hasOwnProperty(key)) {
+            if (typeof this.watch[key] == 'function') {
+              this.watch[key](data[key], this.data[key], NativeEvent);
+            }
+          }
+
           this.emit('dataChange');
           break;
         }
+      }
+    };
+    /**
+    *@var handleRequiredDirective
+    *@type Function
+    *@description - Esta directiva afecta la propiedad de required de un input
+    */
+
+
+    this.handleRequiredDirective = function (el, output) {
+      if (typeof output == 'boolean' && ['INPUT', 'TEXTAREA'].indexOf(el.tagName) != -1) {
+        if (output) {
+          el.setAttribute('required', '');
+        } else {
+          el.removeAttribute('required');
+        }
+      }
+    };
+    /*
+    *@var handleReadonlyDirective
+    *@type Function
+    *@description - Directive que afecta la propiedad solo lectura de los input y textareas
+    */
+
+
+    this.handleReadonlyDirective = function (el, output) {
+      if (typeof output == 'boolean' && ['INPUT', 'TEXTAREA'].indexOf(el.tagName) != -1) {
+        if (output) {
+          el.setAttribute('readonly', '');
+        } else {
+          el.removeAttribute('readonly');
+        }
+      }
+    };
+    /**
+    *@var handleDisabledDirective
+    *@type Function
+    *@description - directive que manipula la propiedad disabled del elemento
+    **/
+
+
+    this.handleDisabledDirective = function (el, output) {
+      if (typeof output == 'boolean' && ['INPUT', 'SELECT', 'BUTTON', 'TEXTAREA'].indexOf(el.tagName) != -1) {
+        el.disabled = output;
       }
     };
     /*
@@ -364,6 +430,94 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
     this.handleShowDirective = function (el, output) {
       el.style.display = output ? 'block' : 'none';
+    };
+    /**
+    *@var initializeModel
+    *@type Function
+    *@description - Directive que se encarga de manipular las entradas input y select, provenientes de 
+    * una formulario si fuese necesario
+    **/
+
+
+    this.initializeModel = function (el) {
+      var _this = this;
+
+      var tagInputAccept = ['INPUT', 'SELECT', 'TEXTAREA'];
+      var el = el || this.el;
+      var attrEls = el.querySelectorAll('[pp-model]');
+
+      if (attrEls.length > 0) {
+        attrEls.forEach(function (attrEl) {
+          if (tagInputAccept.indexOf(attrEl.tagName) != -1) {
+            switch (attrEl.tagName) {
+              case 'INPUT':
+                _this.modelInput(attrEl); // execute model input
+
+
+                break;
+
+              case 'SELECT':
+                console.log("Select ......."); // execute model select
+
+                break;
+
+              case 'TEXTAREA':
+                console.log("Textarea ......."); // execute model textarea
+
+                break;
+            }
+          }
+        });
+      }
+    };
+    /**
+    *@var modelInput
+    *@type Function
+    *@description - Function especifica que se le aplica al input tag
+    **/
+
+
+    https: //cl-a3-p-e-br5.cdn.mdstrm.com/live-stream-secure/53d2c1a32640614e62a0e000/publish/media_2400.m3u8
+    this.modelInput = function (input) {
+      var _this2 = this;
+
+      //-------------------------------------------------------------------
+      var model = input.getAttribute("pp-model");
+      var debounce = input.getAttribute("pp-model-debounce");
+      var debounceValue = debounce == null ? 0 : parseInt(debounce);
+      var type = input.type.toLowerCase(); //-------------------------------------------------------------------
+
+      if (this.data.hasOwnProperty(model)) {
+        input.value = this.data[model].toString();
+      } //-------------------------------------------------------------------
+
+
+      var debounceFunction = this.debounce(function (event) {
+        if (_this2.data[model].toString() !== event.target.value) {
+          if (_this2.watch.hasOwnProperty(model)) {
+            if (typeof _this2.watch[model] == 'function') {
+              try {
+                _this2.watch[model](event.target.value, _this2.data[model], event);
+              } catch (errorWatch) {
+                console.log(errorWatch);
+              }
+            }
+          } // dependiendo del tipo
+
+
+          switch (type) {
+            case 'text':
+              _this2.data[model] = event.target.value;
+              break;
+          }
+
+          _this2.emit('dataChange');
+        }
+      }, debounceValue); //-------------------------------------------------------------------
+
+      this.lisenEvent.keyboard.forEach(function (eventName) {
+        input.addEventListener(eventName, debounceFunction);
+      }); //-------------------------------------------------------------------
     }; // ---------------------------------------------------------------------
 
     /**
@@ -377,7 +531,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectivesComplex = function (el) {
-      var _this = this;
+      var _this3 = this;
 
       var el = el || this.el;
       var attributesCatch = ['bind', 'style', 'class'];
@@ -396,7 +550,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               var styleList = {};
 
               try {
-                styleList = _this.saferEval(expression, _objectSpread({}, _this.data), _this.methods);
+                styleList = _this3.saferEval(expression, _objectSpread({}, _this3.data), _this3.methods);
               } catch (messageError) {// console.log( messageError ); 
               }
 
@@ -420,7 +574,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               var classList = {};
 
               try {
-                classList = _this.saferEval(expression, _objectSpread({}, _this.data), _this.methods);
+                classList = _this3.saferEval(expression, _objectSpread({}, _this3.data), _this3.methods);
               } catch (messageError) {// console.log( messageError ); 
               }
 
@@ -467,7 +621,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 var output = "";
 
                 try {
-                  var output = _this.saferEval(bind_expression[iterator], _objectSpread({}, _this.data), _this.methods);
+                  var output = _this3.saferEval(bind_expression[iterator], _objectSpread({}, _this3.data), _this3.methods);
                 } catch (messageError) {// console.log(  );
                 }
 
@@ -476,7 +630,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 if ([null, undefined, false].includes(output)) {
                   attrEl.removeAttribute(nameAttr);
                 } else {
-                  attrEl.setAttribute(nameAttr, _this.isBooleanAttr(nameAttr) ? nameAttr : output);
+                  attrEl.setAttribute(nameAttr, _this3.isBooleanAttr(nameAttr) ? nameAttr : output);
                 }
 
                 ;
@@ -501,10 +655,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectives = function (el) {
-      var _this2 = this;
+      var _this4 = this;
 
       var el = el || this.el;
-      var attributesCatch = ['text', 'html', 'show'];
+      var attributesCatch = ['text', 'html', 'show', 'disabled', 'readonly', 'required'];
       attributesCatch.forEach(function (attrCatch) {
         var attrEls = el.querySelectorAll('[pp-' + attrCatch + ']');
 
@@ -519,15 +673,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             var output = "";
 
             try {
-              output = _this2.saferEval(expressionArray[0], _objectSpread({}, _this2.data), _this2.methods); // Capturando Filtros                       
+              output = _this4.saferEval(expressionArray[0], _objectSpread({}, _this4.data), _this4.methods); // Capturando Filtros                       
 
               if (expressionArray.length > 1) {
                 for (var iterator = 1; iterator < expressionArray.length; iterator++) {
                   var Filtro = expressionArray[iterator];
 
-                  if (_this2.filters.hasOwnProperty(Filtro)) {
+                  if (_this4.filters.hasOwnProperty(Filtro)) {
                     if (typeof output == 'string') {
-                      output = _this2.filters[Filtro](output);
+                      output = _this4.filters[Filtro](output);
                     }
                   }
                 }
@@ -538,17 +692,32 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
             switch (attrCatch) {
               case 'text':
-                _this2.handleTextDirective(attrEl, output);
+                _this4.handleTextDirective(attrEl, output);
 
                 break;
 
               case 'show':
-                _this2.handleShowDirective(attrEl, output);
+                _this4.handleShowDirective(attrEl, output);
 
                 break;
 
               case 'html':
-                _this2.handleHtmlDirective(attrEl, output);
+                _this4.handleHtmlDirective(attrEl, output);
+
+                break;
+
+              case 'disabled':
+                _this4.handleDisabledDirective(attrEl, output);
+
+                break;
+
+              case 'readonly':
+                _this4.handleReadonlyDirective(attrEl, output);
+
+                break;
+
+              case 'required':
+                _this4.handleRequiredDirective(attrEl, output);
 
                 break;
             }
@@ -561,26 +730,26 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.HelperFunctionInitialize = function (el, EventName, done) {
-      var _this3 = this;
+      var _this5 = this;
 
       var expression = el.getAttribute('pp-' + EventName);
 
       var handle = function handle(NativeEvent) {
-        var $data = _objectSpread({}, _this3.data);
+        var $data = _objectSpread({}, _this5.data);
 
-        var $dataTemporal = Object.assign(_objectSpread({}, _this3.data), {
+        var $dataTemporal = Object.assign(_objectSpread({}, _this5.data), {
           $el: el,
           $event: NativeEvent
         });
 
         try {
-          var safer = _this3.saferEval(expression, $dataTemporal, _this3.methods);
+          var safer = _this5.saferEval(expression, $dataTemporal, _this5.methods);
         } catch (messageError) {//console.log( messageError );
         }
 
-        _this3.data = _objectSpread({}, _this3.omit($dataTemporal, '$el', '$event'));
+        _this5.data = _objectSpread({}, _this5.omit($dataTemporal, '$el', '$event'));
 
-        _this3.detectingChangeData($data);
+        _this5.detectingChangeData($data, NativeEvent);
 
         if (typeof done == 'function') {
           done(handle);
@@ -602,7 +771,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initialize = function (el) {
-      var _this4 = this;
+      var _this6 = this;
 
       var el = el || this.el;
       this.lisenEvent['mouse'].forEach(function (lEvent) {
@@ -610,7 +779,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         if (ElementEvent.length > 0) {
           ElementEvent.forEach(function (ElEvent) {
-            _this4.HelperFunctionInitialize(ElEvent, lEvent);
+            _this6.HelperFunctionInitialize(ElEvent, lEvent);
           });
         }
 
@@ -621,7 +790,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         if (ElementEvent.length > 0) {
           ElementEvent.forEach(function (ElEventOnce) {
-            _this4.HelperFunctionInitialize(ElEventOnce, lEvent + '-once', function (handle) {
+            _this6.HelperFunctionInitialize(ElEventOnce, lEvent + '-once', function (handle) {
               ElEventOnce.removeEventListener(lEvent, handle);
             });
           });
@@ -629,8 +798,81 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         ;
       });
+      this.lisenEvent['keyboard'].forEach(function (lEvent) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
+
+        if (ElementEvent.length > 0) {
+          ElementEvent.forEach(function (ElEvent) {
+            _this6.HelperFunctionInitialize(ElEvent, lEvent);
+          });
+        }
+
+        ;
+      });
+      this.lisenEvent['keyboard'].forEach(function (lEventOnce) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
+
+        if (ElementEvent.length > 0) {
+          ElementEvent.forEach(function (ElEventOnce) {
+            _this6.HelperFunctionInitialize(ElEventOnce, lEventOnce + '-once', function (handle) {
+              ElEventOnce.removeEventListener(lEvent, handle);
+            });
+          });
+        }
+
+        ;
+      });
+      this.lisenEvent['drag'].forEach(function (lEvent) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
+
+        if (ElementEvent.length > 0) {
+          ElementEvent.forEach(function (ElEvent) {
+            _this6.HelperFunctionInitialize(ElEvent, lEvent);
+          });
+        }
+
+        ;
+      });
+      this.lisenEvent['drag'].forEach(function (lEventOnce) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
+
+        if (ElementEvent.length > 0) {
+          ElementEvent.forEach(function (ElEventOnce) {
+            _this6.HelperFunctionInitialize(ElEventOnce, lEventOnce + '-once', function (handle) {
+              ElEventOnce.removeEventListener(lEvent, handle);
+            });
+          });
+        }
+
+        ;
+      });
+      this.lisenEvent['form'].forEach(function (lEvent) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
+
+        if (ElementEvent.length > 0) {
+          ElementEvent.forEach(function (ElEvent) {
+            _this6.HelperFunctionInitialize(ElEvent, lEvent);
+          });
+        }
+
+        ;
+      });
+      this.lisenEvent['form'].forEach(function (lEventOnce) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
+
+        if (ElementEvent.length > 0) {
+          ElementEvent.forEach(function (ElEventOnce) {
+            _this6.HelperFunctionInitialize(ElEventOnce, lEventOnce + '-once', function (handle) {
+              ElEventOnce.removeEventListener(lEvent, handle);
+            });
+          });
+        }
+
+        ;
+      });
+      this.initializeModel(el);
       this.initializeDirectivesAll(el);
-    }; // ---------------------------------------------------------------------  
+    }; // ---------------------------------------------------------------------   
 
     /**
     *@var initializeDirevesAll
@@ -645,7 +887,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.on('dataChange', function () {
-      return _this5.initializeDirectivesAll(_this5.el);
+      return _this7.initializeDirectivesAll(_this7.el);
     });
     this.initialize(this.el);
     this.emit('finished'); //----------------------------------------------------------------------------

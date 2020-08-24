@@ -33,9 +33,13 @@ var viewModel = new ppView({
 	el:"[pp-view='models']",
 
 	template:`
+			
+
+			<input type="text" pp-click="console.log('click ')" vaue="keypress" />
+
 			<h1 pp-text="myVar"></h1>
-			<button pp-disabled="myVar == 'hola' " >AAA</button>
-			<input class="input" pp-model="myVar" type="text" pp-model-debounce="150"/>
+			<button pp-click="algo = !algo" pp-disabled="myVar == 'hola' " >AAA</button>
+			<input class="input" pp-readonly="algo" pp-model="myVar" type="text" pp-model-debounce="150"/>
 			<div pp-for="list" >
 				<div pp-for-template >
 					<h3 pp-for-text="list.name" ></h3>
@@ -43,10 +47,35 @@ var viewModel = new ppView({
 				</div>
 			</div>
 
+			<form pp-form name="form1"  pp-submit="submit($form),$event.preventDefault()" >
+				<input autocomplete="off" type="text" name="enviar"  />	
+				<button type="submit" >Enviar</button>	
+			</form>
+
 			`,
+
+
+	methods:{
+
+		hello(){
+
+			console.log("Hellow");
+
+		},
+
+		submit( form ){
+
+			console.log(form);
+			
+
+		}
+
+	},
 
 	data:{
 		myVar:'Text in Input',
+
+		algo:true,
 
 		username : 'CarlosIllesca',
 
@@ -63,13 +92,7 @@ var viewModel = new ppView({
 
 	watch:{
 		myVar:function( newValue , oldValue , event){
-
-				console.log( oldValue );
-				console.log( newValue);
-
-				if( newValue == 'Carlos Illesca' ){
-						alert("Hola Carloncho");
-				}
+				
 		}
 	}
 

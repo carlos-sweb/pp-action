@@ -73,6 +73,20 @@ ___
 <p><code>pp-disabled</code> toggles property disabled if is true , in tagname INPUT,SELECT,BUTTON and TEXTAREA</p>
 
 ___
+### <code>pp-readonly</code>
+
+<p><strong>Example:</strong><code>&#60;div pp-readonly="readonly" >&#60;/div&#62;</code></p>
+<p><strong>Structure:</strong><code>&#60;div pp-readonly="[expression]" >&#60;/div&#62;</code></p>
+<p><code>pp-readonly</code> toggles property readonly if is true , in tagname INPUT and TEXTAREA</p>
+
+___
+### <code>pp-required</code>
+
+<p><strong>Example:</strong><code>&#60;div pp-readonly="readonly" >&#60;/div&#62;</code></p>
+<p><strong>Structure:</strong><code>&#60;div pp-readonly="[expression]" >&#60;/div&#62;</code></p>
+<p><code>pp-readonly</code> toggles property readonly if is true , in tagname INPUT and TEXTAREA</p>
+
+___
 ### <code>pp-html</code>
 
 <strong>Example:</strong><code>&#60;div pp-html="MyHtml" >&#60;/div&#62;</code><br>
