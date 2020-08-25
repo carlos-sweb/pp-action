@@ -21,7 +21,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 /*!!
- * Power Panel View <http://github.com/millermedeiros/hasher>
+ * Power Panel View <https://github.com/carlos-sweb/pp-action>
  * @author Carlos Illesca
  * @version 1.0.0 (2020/01/01 03:18 PM)
  * Released under the MIT License
@@ -45,7 +45,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   }
 })(function (root, ppView) {
   return function (options) {
-    var _this7 = this;
+    var _this8 = this;
 
     // ------------------------------------------------
 
@@ -253,6 +253,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
     this.watch = options.watch || {};
     /**
+    *@var form
+    *@type Object
+    *@description - objecto que contiene los formularios   
+    **/
+
+    this.form = options.form || {};
+    this.$form = {};
+    /**
     *@var data
     *@type Object
     *@description - objeto que contiene los datos a manipular 
@@ -340,12 +348,68 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           // execute watch function 
           if (this.watch.hasOwnProperty(key)) {
             if (typeof this.watch[key] == 'function') {
+              // valor antiguo 
+              //  
               this.watch[key](data[key], this.data[key], NativeEvent);
             }
           }
 
           this.emit('dataChange');
           break;
+        }
+      }
+    };
+    /*
+    *@var
+    *@type Function
+    *@description -
+    */
+
+
+    this.handleFormDirective = function (el) {
+      var _this = this;
+
+      if (el.hasAttribute('name')) {
+        var nameForm = el.getAttribute('name');
+
+        if (typeof nameForm == 'string' && nameForm != '') {
+          // ------------------------------------------------------------
+          if (!this.$form.hasOwnProperty(nameForm)) {
+            this.$form[nameForm] = {
+              $valid: true,
+              $dirty: false
+            };
+          }
+
+          ;
+          var othersDirectives = Object.values(_objectSpread(_objectSpread(_objectSpread({}, Array.from(el.querySelectorAll("[pp-text]"))), Array.from(el.querySelectorAll("[pp-]"))), Array.from(el.querySelectorAll("[pp-model]")))); //console.log( othersDirectives );
+
+          var inputs = [].concat(_toConsumableArray(Array.from(el.querySelectorAll("input[pp-model]"))), _toConsumableArray(Array.from(el.querySelectorAll("select[pp-model]"))), _toConsumableArray(Array.from(el.querySelectorAll("textarea[pp-model]"))));
+
+          if (inputs.length > 0) {
+            inputs.forEach(function (input) {
+              // Agregamos esta información                
+              if (input.hasAttribute('pp-model')) {
+                var model = input.getAttribute('pp-model');
+
+                if (typeof model == 'string' && model != '') {
+                  if (_this.data.hasOwnProperty(model)) {
+                    // aqui hay que crear un sistema de validacion
+                    // Check format value
+                    _this.$form[nameForm][model] = {
+                      $valid: input.hasAttribute("required") && input.value == '' ? false : true,
+                      $dirty: false,
+                      $value: input.value
+                    };
+                  }
+                }
+              }
+            });
+          } // ------------------------------------------------------------
+          //console.log("Form ...............");
+          // console.log( this.$form[nameForm] );
+          // console.log("Form ...............");
+
         }
       }
     };
@@ -440,7 +504,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeModel = function (el) {
-      var _this = this;
+      var _this2 = this;
 
       var tagInputAccept = ['INPUT', 'SELECT', 'TEXTAREA'];
       var el = el || this.el;
@@ -451,13 +515,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           if (tagInputAccept.indexOf(attrEl.tagName) != -1) {
             switch (attrEl.tagName) {
               case 'INPUT':
-                _this.modelInput(attrEl); // execute model input
+                _this2.modelInput(attrEl); // execute model input
 
 
                 break;
 
               case 'SELECT':
-                console.log("Select ......."); // execute model select
+                _this2.modelSelect(attrEl); // execute model select
+
 
                 break;
 
@@ -470,6 +535,48 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         });
       }
     };
+
+    this.modelSelect = function (input) {
+      var _this3 = this;
+
+      var model = input.getAttribute("pp-model");
+      var debounce = input.getAttribute("pp-model-debounce");
+      var debounceValue = debounce == null ? 0 : parseInt(debounce);
+      var options = input.querySelectorAll("option");
+
+      if (options.length > 0) {
+        options.forEach(function (option) {
+          if (option.value == _this3.data[model].toString()) {
+            option.setAttribute("selected", "");
+          } else {
+            if (option.hasAttribute("selected")) {
+              option.removeAttribute("selected");
+            }
+          }
+        });
+      }
+
+      var debounceFunction = this.debounce(function (event) {
+        var format = event.target.getAttribute("pp-model-format");
+
+        switch (format) {
+          case null:
+            _this3.data[model] = event.target.value;
+            break;
+
+          case 'string':
+            _this3.data[model] = event.target.value.toString();
+            break;
+
+          case 'number':
+            _this3.data[model] = parseInt(event.target.value);
+            break;
+        }
+
+        _this3.emit('dataChange');
+      }, debounceValue);
+      input.addEventListener("change", debounceFunction);
+    };
     /**
     *@var modelInput
     *@type Function
@@ -477,9 +584,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     **/
 
 
-    https: //cl-a3-p-e-br5.cdn.mdstrm.com/live-stream-secure/53d2c1a32640614e62a0e000/publish/media_2400.m3u8
     this.modelInput = function (input) {
-      var _this2 = this;
+      var _this4 = this;
 
       //-------------------------------------------------------------------
       var model = input.getAttribute("pp-model");
@@ -493,11 +599,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
       var debounceFunction = this.debounce(function (event) {
-        if (_this2.data[model].toString() !== event.target.value) {
-          if (_this2.watch.hasOwnProperty(model)) {
-            if (typeof _this2.watch[model] == 'function') {
+        if (_this4.data[model].toString() !== event.target.value) {
+          if (_this4.watch.hasOwnProperty(model)) {
+            if (typeof _this4.watch[model] == 'function') {
               try {
-                _this2.watch[model](event.target.value, _this2.data[model], event);
+                _this4.watch[model](event.target.value, _this4.data[model], event);
               } catch (errorWatch) {
                 console.log(errorWatch);
               }
@@ -507,11 +613,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
           switch (type) {
             case 'text':
-              _this2.data[model] = event.target.value;
+              _this4.data[model] = event.target.value;
               break;
           }
 
-          _this2.emit('dataChange');
+          _this4.emit('dataChange');
         }
       }, debounceValue); //-------------------------------------------------------------------
 
@@ -531,7 +637,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectivesComplex = function (el) {
-      var _this3 = this;
+      var _this5 = this;
 
       var el = el || this.el;
       var attributesCatch = ['bind', 'style', 'class'];
@@ -550,7 +656,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               var styleList = {};
 
               try {
-                styleList = _this3.saferEval(expression, _objectSpread({}, _this3.data), _this3.methods);
+                styleList = _this5.saferEval(expression, _objectSpread({}, _this5.data), _this5.methods);
               } catch (messageError) {// console.log( messageError ); 
               }
 
@@ -574,7 +680,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               var classList = {};
 
               try {
-                classList = _this3.saferEval(expression, _objectSpread({}, _this3.data), _this3.methods);
+                classList = _this5.saferEval(expression, _objectSpread({}, _this5.data), _this5.methods);
               } catch (messageError) {// console.log( messageError ); 
               }
 
@@ -621,7 +727,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 var output = "";
 
                 try {
-                  var output = _this3.saferEval(bind_expression[iterator], _objectSpread({}, _this3.data), _this3.methods);
+                  var output = _this5.saferEval(bind_expression[iterator], _objectSpread({}, _this5.data), _this5.methods);
                 } catch (messageError) {// console.log(  );
                 }
 
@@ -630,7 +736,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 if ([null, undefined, false].includes(output)) {
                   attrEl.removeAttribute(nameAttr);
                 } else {
-                  attrEl.setAttribute(nameAttr, _this3.isBooleanAttr(nameAttr) ? nameAttr : output);
+                  attrEl.setAttribute(nameAttr, _this5.isBooleanAttr(nameAttr) ? nameAttr : output);
                 }
 
                 ;
@@ -655,10 +761,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectives = function (el) {
-      var _this4 = this;
+      var _this6 = this;
 
       var el = el || this.el;
-      var attributesCatch = ['text', 'html', 'show', 'disabled', 'readonly', 'required'];
+      var attributesCatch = ['form', 'text', 'html', 'show', 'disabled', 'readonly', 'required' //'form'// tiene que decar para el ultimo siempre en el array
+      ];
       attributesCatch.forEach(function (attrCatch) {
         var attrEls = el.querySelectorAll('[pp-' + attrCatch + ']');
 
@@ -673,15 +780,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             var output = "";
 
             try {
-              output = _this4.saferEval(expressionArray[0], _objectSpread({}, _this4.data), _this4.methods); // Capturando Filtros                       
+              output = _this6.saferEval(expressionArray[0], _objectSpread({}, _this6.data), _this6.methods); // Capturando Filtros                       
 
               if (expressionArray.length > 1) {
                 for (var iterator = 1; iterator < expressionArray.length; iterator++) {
                   var Filtro = expressionArray[iterator];
 
-                  if (_this4.filters.hasOwnProperty(Filtro)) {
+                  if (_this6.filters.hasOwnProperty(Filtro)) {
                     if (typeof output == 'string') {
-                      output = _this4.filters[Filtro](output);
+                      output = _this6.filters[Filtro](output);
                     }
                   }
                 }
@@ -692,32 +799,37 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
             switch (attrCatch) {
               case 'text':
-                _this4.handleTextDirective(attrEl, output);
+                _this6.handleTextDirective(attrEl, output);
 
                 break;
 
               case 'show':
-                _this4.handleShowDirective(attrEl, output);
+                _this6.handleShowDirective(attrEl, output);
 
                 break;
 
               case 'html':
-                _this4.handleHtmlDirective(attrEl, output);
+                _this6.handleHtmlDirective(attrEl, output);
 
                 break;
 
               case 'disabled':
-                _this4.handleDisabledDirective(attrEl, output);
+                _this6.handleDisabledDirective(attrEl, output);
 
                 break;
 
               case 'readonly':
-                _this4.handleReadonlyDirective(attrEl, output);
+                _this6.handleReadonlyDirective(attrEl, output);
 
                 break;
 
               case 'required':
-                _this4.handleRequiredDirective(attrEl, output);
+                _this6.handleRequiredDirective(attrEl, output);
+
+                break;
+
+              case 'form':
+                _this6.handleFormDirective(attrEl);
 
                 break;
             }
@@ -726,39 +838,43 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         ;
       });
+    };
+
+    this.HelperFunctionInitialize = function (NativeEvent, stringAttribute) {
+      var type = NativeEvent.type;
+      var expression = NativeEvent.target.getAttribute(stringAttribute);
+
+      var $data = _objectSpread({}, this.data);
+
+      var $dataTemporal = Object.assign(_objectSpread({}, this.data), {
+        $el: NativeEvent.target,
+        $event: NativeEvent,
+        $form: null
+      });
+
+      try {
+        var safer = this.saferEval(expression, $dataTemporal, this.methods);
+      } catch (messageError) {//console.log( messageError );
+      }
+
+      this.data = _objectSpread({}, this.omit($dataTemporal, '$el', '$event'));
+      this.detectingChangeData($data, NativeEvent);
     }; // ---------------------------------------------------------------------
 
 
-    this.HelperFunctionInitialize = function (el, EventName, done) {
-      var _this5 = this;
+    this.TT = function (el, expression, EventName, done) {
+      var $form = null;
 
-      var expression = el.getAttribute('pp-' + EventName);
-
-      var handle = function handle(NativeEvent) {
-        var $data = _objectSpread({}, _this5.data);
-
-        var $dataTemporal = Object.assign(_objectSpread({}, _this5.data), {
-          $el: el,
-          $event: NativeEvent
-        });
-
-        try {
-          var safer = _this5.saferEval(expression, $dataTemporal, _this5.methods);
-        } catch (messageError) {//console.log( messageError );
+      if (el.tagName == 'FORM') {
+        if (el.hasAttribute('name')) {
+          if (el.getAttribute('name') != '') {
+            if (this.$form.hasOwnProperty(el.getAttribute('name'))) {
+              $form = this.$form[el.getAttribute('name')];
+            }
+          }
         }
-
-        _this5.data = _objectSpread({}, _this5.omit($dataTemporal, '$el', '$event'));
-
-        _this5.detectingChangeData($data, NativeEvent);
-
-        if (typeof done == 'function') {
-          done(handle);
-        }
-
-        ;
-      };
-
-      el.addEventListener(EventName, handle);
+      } else {//console.log( $el.tagname );
+      }
     }; // ---------------------------------------------------------------------
 
     /*
@@ -771,105 +887,48 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initialize = function (el) {
-      var _this6 = this;
+      var _this7 = this;
 
       var el = el || this.el;
-      this.lisenEvent['mouse'].forEach(function (lEvent) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
+      var eventsMaster = Object.values([].concat(_toConsumableArray(this.lisenEvent['mouse']), _toConsumableArray(this.lisenEvent['keyboard']), _toConsumableArray(this.lisenEvent['drag']), _toConsumableArray(this.lisenEvent['form']))); // forEach
+
+      eventsMaster.forEach(function (lEvent) {
+        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']'); //if
 
         if (ElementEvent.length > 0) {
           ElementEvent.forEach(function (ElEvent) {
-            _this6.HelperFunctionInitialize(ElEvent, lEvent);
+            var expresion = ElEvent.getAttribute('pp-' + lEvent);
+
+            var handle = function (root) {
+              return function handlef(NativeEvent) {
+                root.HelperFunctionInitialize(NativeEvent, 'pp-' + lEvent);
+              };
+            }(_this7);
+
+            ElEvent.addEventListener(lEvent, handle);
           });
-        }
+        } //if
 
-        ;
-      });
-      this.lisenEvent['mouse'].forEach(function (lEventOnce) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
 
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEventOnce) {
-            _this6.HelperFunctionInitialize(ElEventOnce, lEvent + '-once', function (handle) {
-              ElEventOnce.removeEventListener(lEvent, handle);
-            });
+        var ElementEventOnce = el.querySelectorAll('[pp-' + lEvent + '-once]'); //if
+
+        if (ElementEventOnce.length > 0) {
+          ElementEventOnce.forEach(function (ElEventOnce) {
+            var expresionOnce = ElEventOnce.getAttribute('pp-' + lEvent + '-once');
+
+            var handleOnce = function (root) {
+              return function handlefunction(NativeEvent) {
+                root.HelperFunctionInitialize(NativeEvent, 'pp-' + lEvent + '-once');
+                NativeEvent.target.removeEventListener(NativeEvent.type, handlefunction);
+              };
+            }(_this7);
+
+            ElEventOnce.addEventListener(lEvent, handleOnce);
           });
-        }
+        } //if
 
-        ;
-      });
-      this.lisenEvent['keyboard'].forEach(function (lEvent) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
+      }); // forEach
 
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEvent) {
-            _this6.HelperFunctionInitialize(ElEvent, lEvent);
-          });
-        }
-
-        ;
-      });
-      this.lisenEvent['keyboard'].forEach(function (lEventOnce) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
-
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEventOnce) {
-            _this6.HelperFunctionInitialize(ElEventOnce, lEventOnce + '-once', function (handle) {
-              ElEventOnce.removeEventListener(lEvent, handle);
-            });
-          });
-        }
-
-        ;
-      });
-      this.lisenEvent['drag'].forEach(function (lEvent) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
-
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEvent) {
-            _this6.HelperFunctionInitialize(ElEvent, lEvent);
-          });
-        }
-
-        ;
-      });
-      this.lisenEvent['drag'].forEach(function (lEventOnce) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
-
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEventOnce) {
-            _this6.HelperFunctionInitialize(ElEventOnce, lEventOnce + '-once', function (handle) {
-              ElEventOnce.removeEventListener(lEvent, handle);
-            });
-          });
-        }
-
-        ;
-      });
-      this.lisenEvent['form'].forEach(function (lEvent) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']');
-
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEvent) {
-            _this6.HelperFunctionInitialize(ElEvent, lEvent);
-          });
-        }
-
-        ;
-      });
-      this.lisenEvent['form'].forEach(function (lEventOnce) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEventOnce + '-once]');
-
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEventOnce) {
-            _this6.HelperFunctionInitialize(ElEventOnce, lEventOnce + '-once', function (handle) {
-              ElEventOnce.removeEventListener(lEvent, handle);
-            });
-          });
-        }
-
-        ;
-      });
       this.initializeModel(el);
       this.initializeDirectivesAll(el);
     }; // ---------------------------------------------------------------------   
@@ -881,13 +940,13 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectivesAll = function (el) {
-      this.initializeDirectives(el);
       this.initializeDirectivesComplex(el);
+      this.initializeDirectives(el);
     }; // ---------------------------------------------------------------------
 
 
     this.on('dataChange', function () {
-      return _this7.initializeDirectivesAll(_this7.el);
+      return _this8.initializeDirectivesAll(_this8.el);
     });
     this.initialize(this.el);
     this.emit('finished'); //----------------------------------------------------------------------------

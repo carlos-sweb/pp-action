@@ -136,6 +136,8 @@ ___
 |keypress|
 |keyup|
 
+<p>Podemos acceder y modificar los elementos de la data sin necesidad de llamar al this, tambien llamando a los metodos, pero dentro de los metodos no podremos cambiar el valor de la data</p>
+
 <strong>Example:</strong><code>&#60;div pp-click="myFunction()" pp-dblclick="myTextVar='newValue'" >&#60;/div&#62;</code><br>
 <strong>Structure:</strong><code>&#60;div pp-click="[expression]" pp-dblclick="[expression]" >&#60;/div&#62;</code>
 <p><code>pp-[events]</code>Directive lisen event from javascript</p>

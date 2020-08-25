@@ -9,38 +9,23 @@
   // We use `self` instead of `window` for `WebWorker` support.
   var root = typeof self == 'object' && self.self === self && self ||
             typeof global == 'object' && global.global === global && global;
-
   // Set up Backbone appropriately for the environment. Start with AMD.
   if (typeof define === 'function' && define.amd) {  	
-
     define(['exports'], function(exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Backbone.
-
       root.ppView = factory(root, exports);
-
       module.exports = root.ppView;
-
     });
-
   // Next for Node.js or CommonJS. jQuery may not be needed as a module.
-  } else if (typeof exports !== 'undefined') {
-
-
-        
+  } else if (typeof exports !== 'undefined') {  
     factory(root, exports);
-
   // Finally, as a browser global.
   } else {
-
-
     root.ppView = factory(root, {});
   }
-
-})(function(root, ppView) {
-  
+})(function(root, ppView) { 
 	return function( options ){
-
     // ------------------------------------------------
     /*
     *@var debounce
@@ -49,47 +34,29 @@
     * previniendo la sobre ejecutación de funciones 
     */
     this.debounce = function(func,wait){
-
         var timeoutId;
-
         return function(){          
-
           if( timeoutId ){
-
             clearTimeout(timeoutId);
-
           }
-
           const context = this;
-
           const args = arguments;
-
           timeoutId = setTimeout(()=>{
-
               func.apply( context , args  );
-
           },wait);          
-
         }
     }
-
     /**
     *@var pick
     *@type Function
     *@description - Funcion que se encarga de devolver las keys dadas en un objeto
     */
     this.pick = function(){
-
       var args = [].slice.call(arguments);
-
       var result = {};
-
       if( args.length > 1 ){
-
        var theObject = args[0];     
-
        args.shift();      
-
        if( typeof theObject == 'object' ){
          args.forEach(( arg )=>{
            if( typeof arg == 'string' ){             
@@ -110,17 +77,11 @@
     *@description - Function que omite keys dadas para un objeto
     */
     this.omit = function(){
-
-      var args = [].slice.call(arguments);
-      
+      var args = [].slice.call(arguments);     
       var result = {};
-
       if( args.length > 1 ){
-
        var theObject = args[0];     
-
-       args.shift();      
-       
+       args.shift();            
        if( typeof theObject == 'object' ){
          result = {...theObject};
          args.forEach(( arg )=>{
@@ -130,23 +91,18 @@
               };  
            };
          });
-       }
-      
+       }      
        return Object.assign({...result},{});
-
       }else{
         return result;
       };
-
     }
-
   // ------------------------------------------------
     /**
     @function saferEval
     @params
     */
-    this.saferEval = function(expression , dataContext , additionalHelperVariables = {} ){
-           
+    this.saferEval = function(expression , dataContext , additionalHelperVariables = {} ){           
         return new Function(['$data', ...Object.keys(additionalHelperVariables)], `var result; with($data) { result = ${expression} };return result`).bind(this)(dataContext, ...Object.values(additionalHelperVariables));      
     }
     /*=============================================
@@ -167,13 +123,15 @@
     **/
     this.on = function( eventName , callbacks ){
         if( typeof eventName == 'string' ){
-          if( typeof callbacks == 'function' ){
-            this.events[ eventName ] = [];
+          if( typeof callbacks == 'function' ){            
+            if( !this.events.hasOwnProperty(eventName) ){
+              this.events[ eventName ] = [];
+            }            
             this.events[ eventName ].push( callbacks );
           }
         }        
     }
-
+    // No use
     this.removeListener = function( eventName , callbacks ){
         var idx; 
         if( typeof this.events[eventName] === 'object' ){
@@ -191,48 +149,16 @@
     * de este evento
     */
     this.emit = function( eventName ){        
-
         var i, listeners, length, args = [].slice.call(arguments, 1);
-
         if (typeof this.events[eventName] === 'object') {
-
-          listeners = this.events[eventName].slice();
-          
+          listeners = this.events[eventName].slice();         
           length = listeners.length;
-
           for (i = 0; i < length; i++) {
-
               listeners[i].apply(this, args);
-
           }
-
         }
     }
     /*==  End of DEFINICION DE EVENTOS Y FUNCIONES  ==*/
-
-      this.setData = function( key , value ){
-
-
-        var oldValue;
-
-        if( this.data[key] ){
-
-            oldValue = this.data[key];
-
-            this.data[key] = value;
-
-            this.emit('updateData',key);
-            
-            this.emit('change:'+key,oldValue,value);
-
-            /***
-            how use
-            this.on('change:datakey',function( oldValue , newValue ){              
-            });
-            ***/
-
-        }
-    }
     /*=============================================
     =   SECCION DEFINICION DE VARIABLES           =
     =============================================*/  
@@ -344,7 +270,9 @@
                // execute watch function 
                if( this.watch.hasOwnProperty(key) ){
                  if( typeof this.watch[key] == 'function' ){
-                    this.watch[key](data[key],this.data[key],NativeEvent);
+                  // valor antiguo 
+                  //  
+                  this.watch[key](data[key],this.data[key],NativeEvent);
                  }  
                }
 
@@ -355,11 +283,68 @@
               }
           }
     }
-
+    /*
+    *@var
+    *@type Function
+    *@description -
+    */
     this.handleFormDirective = function( el ){
+      if( el.hasAttribute('name') ){
+        var nameForm = el.getAttribute('name');
+        if( typeof nameForm == 'string' && nameForm != '' ){
+          // ------------------------------------------------------------
+          if( !this.$form.hasOwnProperty(nameForm) ){              
+              this.$form[nameForm] = {
+                $valid:true,
+                $dirty:false
+              }
+          };
+          var othersDirectives = Object.values({ 
+          ...Array.from(el.querySelectorAll("[pp-text]")),
+          ...Array.from(el.querySelectorAll("[pp-]")),
+          ...Array.from(el.querySelectorAll("[pp-model]"))
+          });
 
-        console.log( el );
+          //console.log( othersDirectives );
 
+          var inputs = [
+          ...Array.from(el.querySelectorAll("input[pp-model]")),
+          ...Array.from(el.querySelectorAll("select[pp-model]")),
+          ...Array.from(el.querySelectorAll("textarea[pp-model]"))
+          ];
+          
+          if( inputs.length > 0 ){            
+            inputs.forEach(( input )=>{                
+                // Agregamos esta información                
+                if( input.hasAttribute('pp-model') ){
+                  var model = input.getAttribute('pp-model');
+                  if( typeof model == 'string' && model != '' ){
+                      if( this.data.hasOwnProperty(model) ){
+                          // aqui hay que crear un sistema de validacion
+                          // Check format value
+                          this.$form[nameForm][model] = {
+                            $valid: input.hasAttribute("required") && input.value == '' ? false : true  ,
+                            $dirty:false,
+                            $value:input.value                            
+                          }
+
+
+                      }
+                  }
+                }
+            });
+          }
+          // ------------------------------------------------------------
+         //console.log("Form ...............");
+         // console.log( this.$form[nameForm] );
+         // console.log("Form ...............");
+
+
+
+
+
+        } 
+      }
     }
     /**
     *@var handleRequiredDirective
@@ -404,30 +389,21 @@
     *@type Function
     *@description - Directiva que se encarga de la modificación del innerText del emento
     **/
-    this.handleTextDirective = function( el , output ){                
-
+    this.handleTextDirective = function(el,output){
         const old_value = el.innerText;
-
         if( (typeof output == 'function' ? output() : output ) != old_value ){
-
           el.innerText = typeof output === 'function' ? output() : output;
-
-        }        
-
+        }
     }
     /*
     *@var   handleHtmlDirective
     *@type  Function
     *@description
     */
-    this.handleHtmlDirective = function( el , output ){                
-
-        const old_value = el.innerHTML;                
-
+    this.handleHtmlDirective = function(el,output){
+        const old_value = el.innerHTML;
         el.innerHTML = typeof output === 'function' ? output(): output;
-
-        this.initialize( el );        
-        
+        this.initialize( el );
     }
     // ---------------------------------------------------------------------
     /*
@@ -436,10 +412,8 @@
     *@description - Directive que se encarga de mostrar y ocultar un elemento
     *a través de la propiedad "display" 
     */
-    this.handleShowDirective = function( el , output ){            
-
-      el.style.display =  output ? 'block':'none';  
-
+    this.handleShowDirective = function( el , output ){
+      el.style.display =  output ? 'block':'none';
     }
     /**
     *@var initializeModel
@@ -467,8 +441,7 @@
                   // execute model input
               break;
               case 'SELECT':
-                  
-                  console.log("Select .......");
+                  this.modelSelect( attrEl );                  
                   // execute model select
 
               break;
@@ -484,39 +457,66 @@
         });
       }
     }
+    /**
+    *@var modelSelect
+    *@type Function
+    *@description - model que 
+    */
+    this.modelSelect = function( input ){
+        
+        var model         = input.getAttribute("pp-model");        
+        var debounce      = input.getAttribute("pp-model-debounce");        
+        var debounceValue = debounce == null ? 0 : parseInt(debounce);
 
+        var options = input.querySelectorAll("option");
+        if( options.length > 0 ){
+          options.forEach(( option )=>{              
+              if( option.value == this.data[model].toString() ){
+                  option.setAttribute("selected","");
+              }else{
+                  if( option.hasAttribute("selected") ){
+                    option.removeAttribute("selected");
+                  }                  
+              }
+          });
+        }        
+       var debounceFunction = this.debounce(( event )=>{        
+        var format = event.target.getAttribute("pp-model-format");        
+        switch( format ){
+           case null:
+              this.data[model] = event.target.value;
+           break;
+           case 'string':
+              this.data[model] = event.target.value.toString(); 
+           break; 
+           case 'number':
+              this.data[model] = parseInt(event.target.value);
+           break;
+        }                
+        this.emit('dataChange');
+       },debounceValue);
+
+      input.addEventListener( "change" , debounceFunction );      
+    }
     /**
     *@var modelInput
     *@type Function
     *@description - Function especifica que se le aplica al input tag
-    **/
-
-
-    https://cl-a3-p-e-br5.cdn.mdstrm.com/live-stream-secure/53d2c1a32640614e62a0e000/publish/media_2400.m3u8
-
-
-    this.modelInput = function( input ){
-
-        //-------------------------------------------------------------------
-
-        var model         = input.getAttribute("pp-model");
-        
+    **/    
+    this.modelInput = function( input ){        
+        var model         = input.getAttribute("pp-model");        
         var debounce      = input.getAttribute("pp-model-debounce");        
-
         var debounceValue = debounce == null ? 0 : parseInt(debounce);
-
         var type = input.type.toLowerCase();        
-        //-------------------------------------------------------------------
+        //-------------------------------------------------------------------        
         if( this.data.hasOwnProperty(model) ){
-
           input.value = this.data[model].toString();
-
         }
         //-------------------------------------------------------------------
+        // Funcion interna para el addEventList
         var debounceFunction = this.debounce(( event )=>{          
-
           if( this.data[model].toString() !== event.target.value  ){
-
+            // Run watch
             if( this.watch.hasOwnProperty(model) ){
                 if( typeof this.watch[model] == 'function' ){
                   try{
@@ -525,32 +525,47 @@
                     console.log(errorWatch);
                   }                  
                 }
-
             }
-            // dependiendo del tipo
+            // Run watch
             switch( type ){
               case 'text':
                   this.data[model] = event.target.value;
               break;
-            }            
-            
+            }                        
             this.emit('dataChange');
-
           }
-
         },debounceValue);
+        // Funcion interna para el addEventList
         //-------------------------------------------------------------------
         this.lisenEvent.keyboard.forEach(( eventName )=>{
-
           input.addEventListener( eventName , debounceFunction );
-
         });
-        //-------------------------------------------------------------------
-
-     
+        //-------------------------------------------------------------------    
     }
+    // ------------------------------------------------------------------------
+    /**
+    *@var modelSetValue
+    *@type Function
+    *@description - funcion que actualiza a los input su valor, según cambie la data
+    */
+    this.modelSetValue = function( el ){      
+      var el = el || this.el;
+      var m = Object.values(Array.from(this.el.querySelectorAll("[pp-model]")));
+      if(m.length > 0){
+      m.forEach((input)=>{
+        var model = input.getAttribute("pp-model");
+        if( [ 'INPUT', 'SELECT', 'TEXTAREA' ].indexOf(input.tagName) != -1 ){
+          if( this.data.hasOwnProperty(model)){
+            // no hacemos nada parece con esto por mientas
+            input.value = this.data[model];
+            // mientas efinimos a secas esoto
+          }
+        }       
+      });
+      }
 
-    // ---------------------------------------------------------------------
+    }
+    // --------------------------------------------------------------------------
     /**
     *@var initializeDirectivesComplex
     *@type Function
@@ -691,8 +706,6 @@
         };
 
       });
-
-
     }
     // ---------------------------------------------------------------------    
     /**
@@ -703,14 +716,10 @@
 
         var el = el || this.el;
 
-        var attributesCatch = [ 
-                  'text' , 
-                  'html' , 
-                  'show', 
-                  'disabled' ,
-                  'readonly', 
-                  'required',
-                  'form'];
+        var attributesCatch = [
+                  'form','text' ,'html' ,
+                  'show','disabled' ,'readonly',
+                  'required'];
 
               attributesCatch.forEach((attrCatch)=>{
 
@@ -727,10 +736,11 @@
 
                         return value.trim();
 
-                      });                      
-                      // variable de salida 
-                      var output = "";
+                      });
 
+                      // variable de salida 
+                      var output = "";                      
+                      
                       try{
                                                 
                         output = this.saferEval(
@@ -749,58 +759,36 @@
                               if( this.filters.hasOwnProperty(Filtro) ){
                                   
                                   if( typeof output == 'string'  ){
-
                                     output =  this.filters[Filtro]( output )
-
                                   }
                               }
                             }                            
                         }
                         // Capturando Filtros    
-
                       }catch( messageError ){
-
                         //console.error(messageError);
-
                       }
-                      
-
                       switch(attrCatch){
                          case 'text':
-
                           this.handleTextDirective( attrEl ,output );
-
                          break;
                          case 'show':
-
                           this.handleShowDirective( attrEl , output );                  
-
                          break;
                          case 'html':
-
                           this.handleHtmlDirective( attrEl , output);
-
                          break;
                          case 'disabled':
-
                           this.handleDisabledDirective( attrEl , output );
-
                          break;
-
                          case 'readonly':
                           this.handleReadonlyDirective( attrEl , output ); 
                          break;
-
-                         case 'required':
-                           
+                         case 'required':                           
                            this.handleRequiredDirective( attrEl , output );
-
                          break;
-
                          case 'form':
-
                            this.handleFormDirective( attrEl );
-
                          break;
 
                       }
@@ -812,51 +800,42 @@
             });
 
     }
+    /*
+    *@var HelperFunctionInitialize
+    *@type Function
+    *@description - Esta funcion ayuda ha inicializar los eventos 
+    */
+    this.HelperFunctionInitialize = function( NativeEvent , stringAttribute ){     
+      var type       = NativeEvent.type;
+      var expression = NativeEvent.target.getAttribute(stringAttribute);
+      var $data =  { ...this.data };
+      var $dataTemporal = Object.assign({...this.data},{
+        $el    : NativeEvent.target,
+        $event : NativeEvent,
+        $form  : null
+      });
+      try{
+        var safer = this.saferEval( expression , $dataTemporal , this.methods );        
+      }catch( messageError ){
+        //console.log( messageError );
+      }
+      this.data = { ...this.omit( $dataTemporal , '$el' ,'$event' ) };
+      this.detectingChangeData( $data , NativeEvent);
+    }
     // ---------------------------------------------------------------------
-    this.HelperFunctionInitialize = function( el , EventName , done ){
-
-        var expression =  el.getAttribute( 'pp-'+EventName );
-
-        // seccion de formulario
-        var form = null;
-
-        if( el.tagName == 'FORM' ){
-          if( el.hasAttribute('name') ){
-             if( this.$form.hasOwnProperty(el.getAttribute('name')) ){
-               form = this.$form[el.getAttribute('name')];
-             }   
-          }
-
-        }
-        // seccion de formulario
-
-        var handle = ( NativeEvent )=>{
-
-          var $data = { ...this.data };
-          // Variables magicas 
-          var $dataTemporal = Object.assign({...this.data},{
-
-            $el    : el,
-
-            $event : NativeEvent,
-
-            $form : form
-
-          });
-
-          try{
-            var safer = this.saferEval( expression , $dataTemporal , this.methods );
-          }catch( messageError ){
-            //console.log( messageError );
-          }
-          this.data = { ...this.omit( $dataTemporal , '$el' ,'$event' ) };
-          this.detectingChangeData( $data , NativeEvent); 
-          if( typeof done == 'function' ){
-            done( handle );
-          };
-        }  
-        el.addEventListener( EventName , handle );
-
+    this.TT = function( el , expression , EventName , done ){              
+          var $form = null;
+          if( el.tagName == 'FORM' ){
+            if( el.hasAttribute('name') ){              
+              if( el.getAttribute('name') != '' ){
+                if( this.$form.hasOwnProperty(el.getAttribute('name')) ){
+                  $form = this.$form[el.getAttribute('name')]
+                }
+              }
+            }   
+          }else{
+            //console.log( $el.tagname );
+          }        
     }
     // ---------------------------------------------------------------------
     /*
@@ -867,93 +846,47 @@
     *@param el - > Objecto  de del Dom a Inicializar
     */
     this.initialize = function( el ){
-
       var el = el || this.el;
-      
-      this.lisenEvent['mouse'].forEach(( lEvent )=>{
-        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEvent ) => {
-              this.HelperFunctionInitialize( ElEvent , lEvent );
-            } );
-        };
-      });
-
-      this.lisenEvent['mouse'].forEach(( lEventOnce )=>{        
-        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEventOnce )=>{
-               this.HelperFunctionInitialize( ElEventOnce , lEvent+'-once' , ( handle )=>{
-                   ElEventOnce.removeEventListener(lEvent,handle);
-               } );
-            } );
-        };
-      });
-
-
-      this.lisenEvent['keyboard'].forEach(( lEvent )=>{        
-        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEvent ) => {
-              this.HelperFunctionInitialize( ElEvent , lEvent );
-            } );
-        };
-      });
-
-      this.lisenEvent['keyboard'].forEach(( lEventOnce )=>{
-        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEventOnce )=>{
-               this.HelperFunctionInitialize( ElEventOnce , lEventOnce+'-once' , ( handle )=>{
-                   ElEventOnce.removeEventListener(lEvent,handle);
-               } );
-            } );
-        };
-      });
-
-
-      this.lisenEvent['drag'].forEach(( lEvent )=>{        
-        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEvent ) => {
-              this.HelperFunctionInitialize( ElEvent , lEvent );
-            } );
-        };
-      });
-
-      this.lisenEvent['drag'].forEach(( lEventOnce )=>{
-        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEventOnce )=>{
-               this.HelperFunctionInitialize( ElEventOnce , lEventOnce+'-once' , ( handle )=>{
-                   ElEventOnce.removeEventListener(lEvent,handle);
-               } );
-            } );
-        };
-      });
-
-      this.lisenEvent['form'].forEach(( lEvent )=>{        
-        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEvent ) => {
-              this.HelperFunctionInitialize( ElEvent , lEvent );
-            } );
-        };
-      });
-
-      this.lisenEvent['form'].forEach(( lEventOnce )=>{
-        const ElementEvent = el.querySelectorAll('[pp-'+lEventOnce+'-once]'); 
-        if( ElementEvent.length > 0 ){
-            ElementEvent.forEach( ( ElEventOnce )=>{
-               this.HelperFunctionInitialize( ElEventOnce , lEventOnce+'-once' , ( handle )=>{
-                   ElEventOnce.removeEventListener(lEvent,handle);
-               } );
-            } );
-        };
-      });
-
+      var eventsMaster = Object.values([
+          ...this.lisenEvent['mouse'],
+          ...this.lisenEvent['keyboard'],
+          ...this.lisenEvent['drag'],
+          ...this.lisenEvent['form']
+      ]);
+      // forEach
+      eventsMaster.forEach( ( lEvent ) => {
+        const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']');
+        //if
+        if( ElementEvent.length > 0  ){
+            ElementEvent.forEach((ElEvent)=>{
+              const expresion = ElEvent.getAttribute('pp-'+lEvent);
+              var handle = (function(root){
+                return function handlef(NativeEvent){
+                  root.HelperFunctionInitialize(NativeEvent,'pp-'+lEvent);
+                }
+              })(this)
+              ElEvent.addEventListener(lEvent,handle);
+            });
+        }
+        //if
+        const ElementEventOnce = el.querySelectorAll('[pp-'+lEvent+'-once]');
+        //if
+        if( ElementEventOnce.length > 0  ){
+            ElementEventOnce.forEach((ElEventOnce)=>{
+              const expresionOnce = ElEventOnce.getAttribute('pp-'+lEvent+'-once');
+              var handleOnce = (function(root){   
+                  return function handlefunction(NativeEvent){                
+                    root.HelperFunctionInitialize( NativeEvent ,'pp-'+lEvent+'-once');
+                    NativeEvent.target.removeEventListener(NativeEvent.type,handlefunction);
+                  }
+              })( this )
+              ElEventOnce.addEventListener( lEvent , handleOnce );
+            });
+        }
+        //if
+      })
+      // forEach
       this.initializeModel( el );
-
       this.initializeDirectivesAll( el );
     }
   // ---------------------------------------------------------------------   
@@ -961,18 +894,16 @@
   *@var initializeDirevesAll
   *@type Function
   */
-  this.initializeDirectivesAll = function( el ){    
-
-    this.initializeDirectives( el );
-
-    this.initializeDirectivesComplex( el );       
-
+  this.initializeDirectivesAll = function( el ){
+    this.initializeDirectivesComplex( el )
+    this.initializeDirectives( el )
   }
   // ---------------------------------------------------------------------
-  this.on('dataChange',()=> this.initializeDirectivesAll( this.el ) ); 
-    
-  this.initialize( this.el );
+  this.on('dataChange',()=> this.initializeDirectivesAll( this.el ) );
+  
+  this.on('dataChange',()=> this.modelSetValue(this.el) );
 
+  this.initialize( this.el );
   this.emit('finished');
 //----------------------------------------------------------------------------
 	}

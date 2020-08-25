@@ -1,42 +1,11 @@
-var view = new ppView({
-		el:"[pp-view='example1']",
-		template:'<h1 data-algo="aa" pp-click="hi($el)" class="title is-1" pp-text="helloword|helloFilter|addText" ></h1>',
-		data:{
-			helloword:"Hello Word !!!"
-		},
-		methods:{
-			hi($el){
 
-				var algo = $el.getAttribute("data-algo");
-
-				console.log(algo);
-
-			}
-		},
-		filters:{
-			helloFilter( text ){
-
-				const result =  text+" Text Add ";
-
-				return result;
-			},
-			addText( text ){
-
-				return text+" * Add more test";
-
-			}
-		}
-});
 
 var viewModel = new ppView({
 
 	el:"[pp-view='models']",
 
 	template:`
-			
-
-			<input type="text" pp-click="console.log('click ')" vaue="keypress" />
-
+			<input type="text" pp-click=" myVar = clickone(myVar)"  />
 			<h1 pp-text="myVar"></h1>
 			<button pp-click="algo = !algo" pp-disabled="myVar == 'hola' " >AAA</button>
 			<input class="input" pp-readonly="algo" pp-model="myVar" type="text" pp-model-debounce="150"/>
@@ -47,29 +16,33 @@ var viewModel = new ppView({
 				</div>
 			</div>
 
-			<form pp-form name="form1"  pp-submit="submit($form),$event.preventDefault()" >
-				<input autocomplete="off" type="text" name="enviar"  />	
+			<form novalidate="novalidate" pp-form name="form1"  pp-submit="$event.preventDefault(),submit(this.$form[$el.getAttribute('name')])" >
+				<input required pp-model="username" autocomplete="off" type="text" name="enviar"  />
+				<label pp-text="$form.$valid ? 'es Valido' : 'no es valido' "  ></label>
+				<p pp-text="contry == 0 ? 'Malo':'Bueno' " ></p>				
+				<select pp-model="contry" pp-model-format="number" >
+					<option value="0">No Defined</option>
+					<option value="1">Chile</option>
+					<option value="2">Francia</option>
+					<option value="3">Estados unidos</option>
+				</select>	
 				<button type="submit" >Enviar</button>	
 			</form>
+
 
 			`,
 
 
 	methods:{
-
 		hello(){
-
 			console.log("Hellow");
-
 		},
-
-		submit( form ){
-
+		clickone(data){				
+			return data+" | poto";
+		},
+		submit( form  ){
 			console.log(form);
-			
-
 		}
-
 	},
 
 	data:{
@@ -78,6 +51,8 @@ var viewModel = new ppView({
 		algo:true,
 
 		username : 'CarlosIllesca',
+
+		contry:3,
 
 		list:[{
 			name : "Productos 1",
@@ -89,10 +64,9 @@ var viewModel = new ppView({
 			description: "AOKAAOKAOAKOAKOAKOA"
 		}]
 	},
-
 	watch:{
 		myVar:function( newValue , oldValue , event){
-				
+				console.log("Watch escuchando el cambio");
 		}
 	}
 
