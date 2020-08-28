@@ -26,12 +26,35 @@
   }
 })(function(root, ppView) {
 
-      /**
+    var isBooleanAttr = function(attrName) {
+      // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
+      // Array roughly ordered by estimated usage
+      const booleanAttributes = ['disabled', 'checked', 'required', 'readonly', 'hidden', 'open', 'selected', 'autofocus', 'itemscope', 'multiple', 'novalidate', 'allowfullscreen', 'allowpaymentrequest', 'formnovalidate', 'autoplay', 'controls', 'loop', 'muted', 'playsinline', 'default', 'ismap', 'reversed', 'async', 'defer', 'nomodule'];
+      return booleanAttributes.includes(attrName);
+    },
+    isRequired = function( el  ){
+        return hasAttr(el,'required');
+    },
+    isValid = function( el ){
+        return hasAttr(el,"required") && el.value == '' ? false : true;
+    },
+    isValidForm = function( form ){
+        var valid = true;
+        var $form = omit(form,'$valid','$dirty');
+        for( key in $form ){
+          if(valid){
+            valid = $form[key].$valid;            
+          }
+        }
+        //console.log(valid);
+        return valid;
+    },
+    /**
     *@var lisenEvent
     *@type Object[Array]
     *@description listado de eventos de javascript
     */
-    var lisenEvent = {
+    lisenEvent = {
        'window':['afterprint','beforeprint','beforeunload','error','hashchange','load','message','offline','online','pagehide','pageshow','popstate','resize','storage','unload'],
        'mouse':['click','dblclick','mousedown','mousemove','mouseout','mouseover','mouseup','wheel'],
        'keyboard':['keydown','keypress','keyup'],
@@ -39,23 +62,23 @@
        'clipboard':['copy','cut','paste'],
        'media':[],
        'form':['blur','change','contextmenu','focus','input','invalid','reset','search','select','submit']
-    }
+    },
     /**
     *@var setAttr
     *@type Function
     *@description - Function que setea el valor de un attirbuto
     */
-    var setAttr = function( el , attr , vl ){
+    setAttr = function( el , attr , vl ){
         el.setAttribute( attr , vl );
-    }
+    },
     /*
     *@var hasAttr
     *@type Function
     *@description - Function que comprueba la existencia de un attributo
     */
-    var hasAttr = function( el , attr ){
+    hasAttr = function( el , attr ){
         return el.hasAttribute(attr);
-    }
+    },
     /*
     *@var getAttr
     *@type Function
@@ -64,9 +87,9 @@
     *  el - > type ElementHtml
     *  attr -> string , name of attribute
     */
-    var getAttr = function( el , attr ){
+    getAttr = function( el , attr ){
         return hasAttr( el , attr ) ? el.getAttribute( attr ) : '';
-    }    
+    },   
    // ------------------------------------------------
     /*
     *@var debounce
@@ -74,7 +97,7 @@
     *@description - Esta funcion crea un intervalo de tiempo para ser ejecutada
     * previniendo la sobre ejecutación de funciones 
     */
-    var debounce = function(func,wait){
+    debounce = function(func,wait){
         var timeoutId;
         return function(){          
           if( timeoutId ){
@@ -86,13 +109,13 @@
               func.apply( context , args  );
           },wait);          
         }
-    }
+    },
     /**
     *@var pick
     *@type Function
     *@description - Funcion que se encarga de devolver las keys dadas en un objeto
     */
-    var pick = function(){
+    pick = function(){
       var args = [].slice.call(arguments);
       var result = {};
       if( args.length > 1 ){
@@ -111,13 +134,13 @@
       }else{
         return result;
       };
-    }
+    },
     /*
     *@var omit
     *@type Function
     *@description - Function que omite keys dadas para un objeto
     */
-    var omit = function(){
+    omit = function(){
       var args = [].slice.call(arguments);     
       var result = {};
       if( args.length > 1 ){
@@ -137,25 +160,25 @@
       }else{
         return result;
       };
-    }
+    },
     /*
     *@var getLisenEvent
     *@type Function
     *@
     */
-    var getLisenEvent = function(){         
+    getLisenEvent = function(){         
          var result = []; 
          for( var i  in lisenEvent ){
              result = result.concat(lisenEvent[i]); 
          }
          return result;
-    }
+    },
     /*
     *@var modelHelperAttributes
     *@type Function
     *@description - Capturar los datos necesarios para la entrada de input
     */
-    var modelHelperAttributes = function( el ){         
+    modelHelperAttributes = function( el ){         
 
         var model    = getAttr(el,"pp-model"),
         debounceTime = getAttr(el,"pp-model-debounce"),
@@ -169,7 +192,7 @@
             type         : type,
             form         : form
         }
-    }
+    };
 
 
 
@@ -289,15 +312,6 @@
     *@description - Es el codigo html obtenidos desde una cadena 
     **/
     this.template =  options.template || null;
-
-
-
-    this.isBooleanAttr = function(attrName) {
-      // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
-      // Array roughly ordered by estimated usage
-      const booleanAttributes = ['disabled', 'checked', 'required', 'readonly', 'hidden', 'open', 'selected', 'autofocus', 'itemscope', 'multiple', 'novalidate', 'allowfullscreen', 'allowpaymentrequest', 'formnovalidate', 'autoplay', 'controls', 'loop', 'muted', 'playsinline', 'default', 'ismap', 'reversed', 'async', 'defer', 'nomodule'];
-      return booleanAttributes.includes(attrName);
-    }
     /*===== FIN DE LA SECCION DE DEFINICION DE VARIABLES ======*/
     // DEFINIMOS EL innerHTML del elemento con el Template cargado
     this.el.innerHTML = this.template;
@@ -358,8 +372,18 @@
     *@description -
     */
     this.handleFormDirective = function( el ){
-
       if( hasAttr(el, 'name' ) ){
+        // -----------------------------------------------------------------------------------
+        el.addEventListener("submit",function(event){
+          if( hasAttr(el,'pp-submit-prevent') ){
+            event.preventDefault()
+          }
+        });
+        // -----------------------------------------------------------------------------------
+
+        el.addEventListener("reset",(event)=>{
+            console.log("Escucnahdo reset");
+        });
 
         var nameForm = getAttr( el , 'name' );
 
@@ -370,6 +394,7 @@
                 $valid:true,
                 $dirty:false
               }
+              this.$form[nameForm].$valid = isValidForm(this.$form[nameForm]);
           };
           // ---------------------------------------------------------------------------------
           // realizamos un enlace con el formulario que esta asociado a este elemento                              
@@ -387,11 +412,13 @@
                         // aqui hay que crear un sistema de validacion
                         // Check format value                        
                         this.$form[nameForm][model] = {
-                          $required:input.hasAttribute("required"),                            
-                          $valid: input.hasAttribute("required") && input.value == '' ? false : true  ,
+                          $required:isRequired(input),
+                          $valid: isValid( input ),
                           $dirty:false,
                           $value:input.value                            
                         }
+
+                        this.$form[nameForm].$valid = isValidForm(this.$form[nameForm]);
 
 
                     }
@@ -401,6 +428,10 @@
           // ---------------------------------------------------------------------------------
         } 
       }
+
+
+
+
     }
     /**
     *@var handleRequiredDirective
@@ -411,44 +442,31 @@
     this.handleRequiredDirective = function( el, output ){
       if( typeof output == 'boolean' && ['INPUT','TEXTAREA'].indexOf(el.tagName) != -1 ){ 
             // ------------------------------------------------------------------------------
-            var updateRequired = function(__el){
+            var updateRequired = function(__el, property){
               // ****************************************************************************
               var nameForm = getAttr(__el,'pp-data-form'),
               model = getAttr(__el,'pp-model');
               // ****************************************************************************
               if( this.$form.hasOwnProperty(nameForm)  ){
                 if( this.$form[nameForm].hasOwnProperty(model) ){
-                  if( this.$form[nameForm][model].$required  != output ){
-                    this.$form[nameForm][model].$required = output;                    
+                  if( this.$form[nameForm][model][property]  != output ){
+                    this.$form[nameForm][model][property] = output;                    
                     this.emit("dataChange");
                   }
                 }
               }
               //*****************************************************************************
             }
+
             // ------------------------------------------------------------------------------            
             if( output == true && el.hasAttribute('required') == false ){               
               el.setAttribute('required','')
-              updateRequired.bind(this)(el)
+              updateRequired.bind(this)(el,'$required')
             }
             // ******************************************************************************
             if( output == false && el.hasAttribute('required') == true ){              
               el.removeAttribute('required');
-               // Aqui hay que hacer algo
-              // ----------------------------------------------------------------------------            
-              var nameForm = getAttr(el,'pp-data-form');
-              var model = getAttr(el,'pp-model');
-              // ----------------------------------------------------------------------------
-              if( this.$form.hasOwnProperty(nameForm)  ){
-                if( this.$form[nameForm].hasOwnProperty(model) ){
-                  if( this.$form[nameForm][model].$required  != output ){
-                    this.$form[nameForm][model].$required = output;                    
-                    this.emit("dataChange");
-                  }
-                }
-              }
-              // ----------------------------------------------------------------------------               
-              // Aqui hay que hacer algo
+              updateRequired.bind(this)(el,'$required')
             }
             // ******************************************************************************                                                   
             
@@ -584,6 +602,7 @@
           if( this.$form.hasOwnProperty(form) ){
             if( this.$form[form].hasOwnProperty(model) ){              
               this.$form[form][model].$value = input.value;
+              this.$form[form].$valid = isValidForm(this.$form[form]);
             }
           }
         }
@@ -608,7 +627,13 @@
                   
                   if( this.$form.hasOwnProperty(form) ){
                     if( this.$form[form].hasOwnProperty(model) ){
-                      this.$form[form][model].$value = event.target.value;  
+                      // Estamos validando
+                      this.$form[form][model].$value = event.target.value;
+                      this.$form[form][model].$valid = isValid(event.target);
+                       if( !this.$form[form][model].$dirty ){this.$form[form][model].$dirty = true}
+                      this.$form[form].$valid = isValidForm(this.$form[form]);
+                      // estamos cambiando el valor
+
                     }
                   }
 
@@ -623,6 +648,17 @@
         lisenEvent.keyboard.forEach(( eventName )=>{
           input.addEventListener( eventName , debounceFunction )
         });
+        input.addEventListener( "change" , ()=>{
+              console.log("Change");
+        } );
+        input.addEventListener("blur",(NativeEvent)=>{
+          var form = getAttr(NativeEvent.target,"pp-data-form");
+          var model = getAttr(NativeEvent.target,"pp-model");          
+          if( !this.$form[form][model].$dirty ){
+            this.$form[form][model].$dirty = true; 
+            this.emit("dataChange")  
+          }
+        })
         //-------------------------------------------------------------------    
     }
     // ------------------------------------------------------------------------
@@ -646,7 +682,12 @@
               // ---------------------------------------------------------------
               if( this.$form.hasOwnProperty(form) ){
                 if( this.$form[form].hasOwnProperty(model) ){                  
+                  
                   this.$form[form][model].$value = this.data[model];
+                  this.$form[form][model].$valid = isValid(input);
+                  this.$form[form].$valid = isValidForm(this.$form[form]);
+
+
                 }
               }
               // ---------------------------------------------------------------
@@ -669,6 +710,10 @@
 
 
     }
+
+
+
+
     // ---------------------------------------------------------------------    
     /**
     *
@@ -676,11 +721,11 @@
     */
     this.initializeDirectives = function( el  ){
 
-        var el = el || this.el;
+          var el = el || this.el;
 
-        var attributesCatch = ['text','html','show','disabled','readonly','required'];
-
-              attributesCatch.forEach((attrCatch)=>{
+          ['text','html','show',
+          'disabled','readonly',
+          'required'].forEach((attrCatch)=>{
 
                 var attrEls = el.querySelectorAll( '[pp-'+attrCatch+']' );
 
@@ -688,9 +733,7 @@
 
                     attrEls.forEach( (attrEl)=>{
                       
-                      const expression = attrEl.getAttribute('pp-'+attrCatch);   
-
-                      //console.log( expression );                   
+                      const expression = getAttr( attrEl , 'pp-'+attrCatch );                                        
 
                       if( expression != "" && expression != null ){                        
                       // Detectando Filtros separados por |
@@ -736,27 +779,12 @@
                         console.warn(messageError);
                       }
 
-
-                      switch(attrCatch){
-                         case 'text':
-                          this.handleTextDirective( attrEl ,output );
-                         break;
-                         case 'show':
-                          this.handleShowDirective( attrEl , output );                  
-                         break;
-                         case 'html':
-                          this.handleHtmlDirective( attrEl , output);
-                         break;
-                         case 'disabled':
-                          this.handleDisabledDirective( attrEl , output );
-                         break;
-                         case 'readonly':
-                          this.handleReadonlyDirective( attrEl , output ); 
-                         break;
-                         case 'required':                           
-                           this.handleRequiredDirective( attrEl , output );
-                         break;
-                      }
+                      if( attrCatch == "text"     ){ this.handleTextDirective( attrEl ,output )}
+                      if( attrCatch == "show"     ){ this.handleShowDirective( attrEl , output )}
+                      if( attrCatch == "disabled" ){ this.handleDisabledDirective( attrEl , output )}
+                      if( attrCatch == "readonly" ){ this.handleReadonlyDirective( attrEl , output )} 
+                      if( attrCatch == "required" ){ this.handleRequiredDirective( attrEl , output )}
+                      if( attrCatch == "html"     ){ this.handleHtmlDirective( attrEl , output)}               
                     
                     }//END IF
 
@@ -767,6 +795,12 @@
             });
 
     }
+
+
+
+
+
+
     /*
     *@var HelperFunctionInitialize
     *@type Function
@@ -852,7 +886,6 @@
       // Esta Funcion solo se ejecutara una vez
       // ya que e activan eventos donde se escuchan los  cambios      
       this.initializeModel( el );
-
       this.initializeDirectivesAll( el );
       // Tiempo for initialize all 
       console.log(Date.now() - iTime);

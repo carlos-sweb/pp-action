@@ -9,16 +9,16 @@ var viewModel = new ppView({
 
 			<button pp-disabled="username=='AAAAA'" class="button is-link" pp-click=" username='AAAAA', hello() ">click</button>
 		
-			<form novalidate="novalidate" pp-form name="form1"  pp-submit="$event.preventDefault(),submit($form)" >
+			<form novalidate="novalidate" pp-form name="form1" pp-submit-prevent  pp-submit="submit($form)" >
 				<div class="field" >									
 					<label><span pp-show="$form.username.$required" >&nbsp;*</span>&nbsp;Nombre</label>
 					<div class="control">
-						<input pp-required="true" class="input" type="text" pp-model="username" />
+						<input required class="input" type="text" pp-model="username" />
 					</div>					 
-					 <p pp-text="!$form.username.$valid ? 'Este Campo es Obligatorio':'&nbsp;' " class="help is-danger"></p>
+					 <p pp-text="!$form.username.$valid && $form.username.$dirty ? 'Este Campo es Obligatorio':'&nbsp;' " class="help is-danger"></p>
 				</div>			
 				<button pp-disabled="!$form.$valid" class="button is-link" type="submit" >Enviar</button>
-				<button class="button" pp-click="console.log('click')" type="reset"  >AA</button>	
+				<button class="button" type="reset"  >AA</button>	
 			</form>						
 
 			`,
@@ -41,7 +41,7 @@ var viewModel = new ppView({
 
 		algo:true,
 
-		username : 'CarlosIllesca',
+		username : '',
 
 		contry:3,
 
