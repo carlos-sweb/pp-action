@@ -24,16 +24,57 @@
   } else {
     root.ppView = factory(root, {});
   }
-})(function(root, ppView) { 
-	return function( options ){
-    // ------------------------------------------------
+})(function(root, ppView) {
+
+      /**
+    *@var lisenEvent
+    *@type Object[Array]
+    *@description listado de eventos de javascript
+    */
+    var lisenEvent = {
+       'window':['afterprint','beforeprint','beforeunload','error','hashchange','load','message','offline','online','pagehide','pageshow','popstate','resize','storage','unload'],
+       'mouse':['click','dblclick','mousedown','mousemove','mouseout','mouseover','mouseup','wheel'],
+       'keyboard':['keydown','keypress','keyup'],
+       'drag':['drag','dragend','dragenter','dragleave','dragover','dragstart','drop','scroll'],
+       'clipboard':['copy','cut','paste'],
+       'media':[],
+       'form':['blur','change','contextmenu','focus','input','invalid','reset','search','select','submit']
+    }
+    /**
+    *@var setAttr
+    *@type Function
+    *@description - Function que setea el valor de un attirbuto
+    */
+    var setAttr = function( el , attr , vl ){
+        el.setAttribute( attr , vl );
+    }
+    /*
+    *@var hasAttr
+    *@type Function
+    *@description - Function que comprueba la existencia de un attributo
+    */
+    var hasAttr = function( el , attr ){
+        return el.hasAttribute(attr);
+    }
+    /*
+    *@var getAttr
+    *@type Function
+    *@description - Function get attribute 
+    *@params 
+    *  el - > type ElementHtml
+    *  attr -> string , name of attribute
+    */
+    var getAttr = function( el , attr ){
+        return hasAttr( el , attr ) ? el.getAttribute( attr ) : '';
+    }    
+   // ------------------------------------------------
     /*
     *@var debounce
     *@type Function
     *@description - Esta funcion crea un intervalo de tiempo para ser ejecutada
     * previniendo la sobre ejecutación de funciones 
     */
-    this.debounce = function(func,wait){
+    var debounce = function(func,wait){
         var timeoutId;
         return function(){          
           if( timeoutId ){
@@ -51,7 +92,7 @@
     *@type Function
     *@description - Funcion que se encarga de devolver las keys dadas en un objeto
     */
-    this.pick = function(){
+    var pick = function(){
       var args = [].slice.call(arguments);
       var result = {};
       if( args.length > 1 ){
@@ -76,7 +117,7 @@
     *@type Function
     *@description - Function que omite keys dadas para un objeto
     */
-    this.omit = function(){
+    var omit = function(){
       var args = [].slice.call(arguments);     
       var result = {};
       if( args.length > 1 ){
@@ -97,6 +138,44 @@
         return result;
       };
     }
+    /*
+    *@var getLisenEvent
+    *@type Function
+    *@
+    */
+    var getLisenEvent = function(){         
+         var result = []; 
+         for( var i  in lisenEvent ){
+             result = result.concat(lisenEvent[i]); 
+         }
+         return result;
+    }
+    /*
+    *@var modelHelperAttributes
+    *@type Function
+    *@description - Capturar los datos necesarios para la entrada de input
+    */
+    var modelHelperAttributes = function( el ){         
+
+        var model    = getAttr(el,"pp-model"),
+        debounceTime = getAttr(el,"pp-model-debounce"),
+        form         = getAttr(el,"pp-data-form"),   
+        type         = hasAttr(el,'type') ? el.type.toLowerCase():"";
+
+        return {
+            model        : model,
+            debounceTime : debounceTime == null ? 0 : debounceTime,
+            debounceValue: parseInt( debounceTime == null ? 0 : debounceTime ),
+            type         : type,
+            form         : form
+        }
+    }
+
+
+
+  // Main Function
+	return function( options ){     
+
   // ------------------------------------------------
     /**
     @function saferEval
@@ -210,20 +289,8 @@
     *@description - Es el codigo html obtenidos desde una cadena 
     **/
     this.template =  options.template || null;
-    /**
-    *@var lisenEvent
-    *@type Object[Array]
-    *@description listado de eventos de javascript
-    */
-    this.lisenEvent = {
-       'window':['afterprint','beforeprint','beforeunload','error','hashchange','load','message','offline','online','pagehide','pageshow','popstate','resize','storage','unload'],
-       'mouse':['click','dblclick','mousedown','mousemove','mouseout','mouseover','mouseup','wheel'],
-       'keyboard':['keydown','keypress','keyup'],
-       'drag':['drag','dragend','dragenter','dragleave','dragover','dragstart','drop','scroll'],
-       'clipboard':['copy','cut','paste'],
-       'media':[],
-       'form':['blur','change','contextmenu','focus','input','invalid','reset','search','select','submit']
-    };
+
+
 
     this.isBooleanAttr = function(attrName) {
       // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
@@ -240,6 +307,8 @@
     *@description - Funcion detecting Change detecta los cambios en un objeto de data para la vista
     *
     */
+
+    // Hay que ordenar esta funcion y definir el ciclo de uso de esta funcion
     this.detectingChangeData = function( data , NativeEvent ){
 
         const keys = Object.keys( data );
@@ -289,60 +358,47 @@
     *@description -
     */
     this.handleFormDirective = function( el ){
-      if( el.hasAttribute('name') ){
-        var nameForm = el.getAttribute('name');
+
+      if( hasAttr(el, 'name' ) ){
+
+        var nameForm = getAttr( el , 'name' );
+
         if( typeof nameForm == 'string' && nameForm != '' ){
-          // ------------------------------------------------------------
+          // ---------------------------------------------------------------------------------
           if( !this.$form.hasOwnProperty(nameForm) ){              
               this.$form[nameForm] = {
                 $valid:true,
                 $dirty:false
               }
           };
-          var othersDirectives = Object.values({ 
-          ...Array.from(el.querySelectorAll("[pp-text]")),
-          ...Array.from(el.querySelectorAll("[pp-]")),
-          ...Array.from(el.querySelectorAll("[pp-model]"))
-          });
-
-          //console.log( othersDirectives );
-
-          var inputs = [
-          ...Array.from(el.querySelectorAll("input[pp-model]")),
-          ...Array.from(el.querySelectorAll("select[pp-model]")),
-          ...Array.from(el.querySelectorAll("textarea[pp-model]"))
-          ];
-          
-          if( inputs.length > 0 ){            
-            inputs.forEach(( input )=>{                
-                // Agregamos esta información                
-                if( input.hasAttribute('pp-model') ){
-                  var model = input.getAttribute('pp-model');
-                  if( typeof model == 'string' && model != '' ){
-                      if( this.data.hasOwnProperty(model) ){
-                          // aqui hay que crear un sistema de validacion
-                          // Check format value
-                          this.$form[nameForm][model] = {
-                            $valid: input.hasAttribute("required") && input.value == '' ? false : true  ,
-                            $dirty:false,
-                            $value:input.value                            
-                          }
+          // ---------------------------------------------------------------------------------
+          // realizamos un enlace con el formulario que esta asociado a este elemento                              
+          var othersDirectives = Array.from(el.querySelectorAll("[pp-text],[pp-show],[pp-class],[pp-model],[pp-click],[pp-disabled]"));
+          othersDirectives.forEach((e)=> !e.hasAttribute('pp-data-form') && ( e.setAttribute('pp-data-form',nameForm)) );
+          // realizamos un enlace con el formulario que esta asociado a este elemento
+          var inputs = Array.from( el.querySelectorAll("input[pp-model],select[pp-model],textarea[pp-model]"));
+          // ---------------------------------------------------------------------------------
+          inputs.forEach(( input )=>{                
+              // Agregamos esta información                
+              if( input.hasAttribute('pp-model') ){
+                var model = input.getAttribute('pp-model');
+                if( typeof model == 'string' && model != '' ){
+                    if( this.data.hasOwnProperty(model) ){
+                        // aqui hay que crear un sistema de validacion
+                        // Check format value                        
+                        this.$form[nameForm][model] = {
+                          $required:input.hasAttribute("required"),                            
+                          $valid: input.hasAttribute("required") && input.value == '' ? false : true  ,
+                          $dirty:false,
+                          $value:input.value                            
+                        }
 
 
-                      }
-                  }
+                    }
                 }
-            });
-          }
-          // ------------------------------------------------------------
-         //console.log("Form ...............");
-         // console.log( this.$form[nameForm] );
-         // console.log("Form ...............");
-
-
-
-
-
+              }
+          });          
+          // ---------------------------------------------------------------------------------
         } 
       }
     }
@@ -351,13 +407,51 @@
     *@type Function
     *@description - Esta directiva afecta la propiedad de required de un input
     */
+    // ****** hay que arreglar el codigo que se repite aqui
     this.handleRequiredDirective = function( el, output ){
-      if( typeof output == 'boolean' && ['INPUT','TEXTAREA'].indexOf(el.tagName) != -1 ){
-            if( output ){
-              el.setAttribute('required','');
-            }else{
+      if( typeof output == 'boolean' && ['INPUT','TEXTAREA'].indexOf(el.tagName) != -1 ){ 
+            // ------------------------------------------------------------------------------
+            var updateRequired = function(__el){
+              // ****************************************************************************
+              var nameForm = getAttr(__el,'pp-data-form'),
+              model = getAttr(__el,'pp-model');
+              // ****************************************************************************
+              if( this.$form.hasOwnProperty(nameForm)  ){
+                if( this.$form[nameForm].hasOwnProperty(model) ){
+                  if( this.$form[nameForm][model].$required  != output ){
+                    this.$form[nameForm][model].$required = output;                    
+                    this.emit("dataChange");
+                  }
+                }
+              }
+              //*****************************************************************************
+            }
+            // ------------------------------------------------------------------------------            
+            if( output == true && el.hasAttribute('required') == false ){               
+              el.setAttribute('required','')
+              updateRequired.bind(this)(el)
+            }
+            // ******************************************************************************
+            if( output == false && el.hasAttribute('required') == true ){              
               el.removeAttribute('required');
-            }                       
+               // Aqui hay que hacer algo
+              // ----------------------------------------------------------------------------            
+              var nameForm = getAttr(el,'pp-data-form');
+              var model = getAttr(el,'pp-model');
+              // ----------------------------------------------------------------------------
+              if( this.$form.hasOwnProperty(nameForm)  ){
+                if( this.$form[nameForm].hasOwnProperty(model) ){
+                  if( this.$form[nameForm][model].$required  != output ){
+                    this.$form[nameForm][model].$required = output;                    
+                    this.emit("dataChange");
+                  }
+                }
+              }
+              // ----------------------------------------------------------------------------               
+              // Aqui hay que hacer algo
+            }
+            // ******************************************************************************                                                   
+            
         }
     }
     /*
@@ -367,11 +461,7 @@
     */
     this.handleReadonlyDirective = function( el , output){
         if( typeof output == 'boolean' && ['INPUT','TEXTAREA'].indexOf(el.tagName) != -1 ){
-            if( output ){
-              el.setAttribute('readonly','');
-            }else{
-              el.removeAttribute('readonly');
-            }                       
+            output ? setAttr(el,'readonly','') : el.removeAttribute('readonly');
         }
     }
     /**
@@ -413,7 +503,7 @@
     *a través de la propiedad "display" 
     */
     this.handleShowDirective = function( el , output ){
-      el.style.display =  output ? 'block':'none';
+      el.style.display =  output ? '':'none';
     }
     /**
     *@var initializeModel
@@ -421,38 +511,18 @@
     *@description - Directive que se encarga de manipular las entradas input y select, provenientes de 
     * una formulario si fuese necesario
     **/
-    this.initializeModel = function( el ){
+    this.initializeModel = function( el ){            
 
-      var tagInputAccept = [ 'INPUT', 'SELECT', 'TEXTAREA' ];
-
-      var el = el || this.el;
-
-      var attrEls = el.querySelectorAll( '[pp-model]' );     
-
+      var tagInputAccept = [ 'INPUT', 'SELECT', 'TEXTAREA' ],
+      el = el || this.el,
+      attrEls = el.querySelectorAll('[pp-model]');
       if( attrEls.length > 0 ){
-        
         attrEls.forEach(( attrEl )=>{
-
-          if( tagInputAccept.indexOf( attrEl.tagName ) != -1 ){
-
-            switch( attrEl.tagName ){
-              case 'INPUT':                                   
-                  this.modelInput( attrEl );
-                  // execute model input
-              break;
-              case 'SELECT':
-                  this.modelSelect( attrEl );                  
-                  // execute model select
-
-              break;
-              case 'TEXTAREA':
-                  
-                  console.log("Textarea .......");
-                  // execute model textarea
-
-              break;
-
-            }            
+          var tg =  attrEl.tagName;
+          if( tagInputAccept.indexOf( tg ) != -1 ){            
+            tg == 'INPUT' && (  this.modelInput( attrEl ) );
+            tg == 'SELECT' && ( this.modelSelect( attrEl ) );
+            //tg == 'TEXTAREA' && ( this.modelTextArea( attrEl ) );       
           }      
         });
       }
@@ -462,13 +532,12 @@
     *@type Function
     *@description - model que 
     */
-    this.modelSelect = function( input ){
-        
-        var model         = input.getAttribute("pp-model");        
-        var debounce      = input.getAttribute("pp-model-debounce");        
-        var debounceValue = debounce == null ? 0 : parseInt(debounce);
+    this.modelSelect = function( input ){ 
+
+        var { model , debounceTime , debounceValue , form } =  modelHelperAttributes(input);
 
         var options = input.querySelectorAll("option");
+        
         if( options.length > 0 ){
           options.forEach(( option )=>{              
               if( option.value == this.data[model].toString() ){
@@ -479,9 +548,12 @@
                   }                  
               }
           });
-        }        
-       var debounceFunction = this.debounce(( event )=>{        
-        var format = event.target.getAttribute("pp-model-format");        
+        }
+
+       var debounceFunction = debounce(( event )=>{        
+        
+        var format = event.target.getAttribute("pp-model-format");
+
         switch( format ){
            case null:
               this.data[model] = event.target.value;
@@ -503,18 +575,21 @@
     *@type Function
     *@description - Function especifica que se le aplica al input tag
     **/    
-    this.modelInput = function( input ){        
-        var model         = input.getAttribute("pp-model");        
-        var debounce      = input.getAttribute("pp-model-debounce");        
-        var debounceValue = debounce == null ? 0 : parseInt(debounce);
-        var type = input.type.toLowerCase();        
+    this.modelInput = function( input ){
+
+        var { model , debounceTime , debounceValue , type , form } =  modelHelperAttributes(input);            
         //-------------------------------------------------------------------        
-        if( this.data.hasOwnProperty(model) ){
+        if( this.data.hasOwnProperty(model) ){          
           input.value = this.data[model].toString();
+          if( this.$form.hasOwnProperty(form) ){
+            if( this.$form[form].hasOwnProperty(model) ){              
+              this.$form[form][model].$value = input.value;
+            }
+          }
         }
         //-------------------------------------------------------------------
         // Funcion interna para el addEventList
-        var debounceFunction = this.debounce(( event )=>{          
+        var debounceFunction = debounce(( event )=>{          
           if( this.data[model].toString() !== event.target.value  ){
             // Run watch
             if( this.watch.hasOwnProperty(model) ){
@@ -530,6 +605,13 @@
             switch( type ){
               case 'text':
                   this.data[model] = event.target.value;
+                  
+                  if( this.$form.hasOwnProperty(form) ){
+                    if( this.$form[form].hasOwnProperty(model) ){
+                      this.$form[form][model].$value = event.target.value;  
+                    }
+                  }
+
               break;
             }                        
             this.emit('dataChange');
@@ -537,8 +619,9 @@
         },debounceValue);
         // Funcion interna para el addEventList
         //-------------------------------------------------------------------
-        this.lisenEvent.keyboard.forEach(( eventName )=>{
-          input.addEventListener( eventName , debounceFunction );
+        //Listado de eventos que pueden cambiar el valor de este input
+        lisenEvent.keyboard.forEach(( eventName )=>{
+          input.addEventListener( eventName , debounceFunction )
         });
         //-------------------------------------------------------------------    
     }
@@ -547,23 +630,31 @@
     *@var modelSetValue
     *@type Function
     *@description - funcion que actualiza a los input su valor, según cambie la data
+    *este cambio de valor del input o del pp-model es externo al mismo input
     */
-    this.modelSetValue = function( el ){      
+    this.modelSetValue = function( el ){
       var el = el || this.el;
       var m = Object.values(Array.from(this.el.querySelectorAll("[pp-model]")));
-      if(m.length > 0){
       m.forEach((input)=>{
-        var model = input.getAttribute("pp-model");
+        var { form , model } = modelHelperAttributes( input );        
         if( [ 'INPUT', 'SELECT', 'TEXTAREA' ].indexOf(input.tagName) != -1 ){
           if( this.data.hasOwnProperty(model)){
             // no hacemos nada parece con esto por mientas
-            input.value = this.data[model];
-            // mientas efinimos a secas esoto
-          }
+            if( input.value != this.data[model].toString() ){              
+              input.value = this.data[model];
+
+              // ---------------------------------------------------------------
+              if( this.$form.hasOwnProperty(form) ){
+                if( this.$form[form].hasOwnProperty(model) ){                  
+                  this.$form[form][model].$value = this.data[model];
+                }
+              }
+              // ---------------------------------------------------------------
+            }            
+            // 
+          }      
         }       
       });
-      }
-
     }
     // --------------------------------------------------------------------------
     /**
@@ -576,136 +667,7 @@
     */
     this.initializeDirectivesComplex = function( el ){
 
-      var el = el || this.el;
 
-      var attributesCatch = [ 'bind' , 'style' , 'class' ];
-
-      attributesCatch.forEach((attrCatch)=>{
-
-        var attrEls = el.querySelectorAll( '[pp-'+attrCatch+']' );
-
-        if( attrEls.length > 0 ){
-
-
-          attrEls.forEach( (attrEl)=>{
-
-            // variables de reconocimineto para bind directive
-
-            var bind_expression , bind_attribute , expression;
-
-            bind_attribute  = [];
-
-            bind_expression = [];
-
-            if( attrCatch == 'style' ){
-              expression = attrEl.getAttribute( 'pp-'+attrCatch );
-              var styleList = {};
-              try{
-                styleList = this.saferEval( expression , { ...this.data } , this.methods );
-              }catch( messageError ){
-                // console.log( messageError ); 
-              }              
-              var styleListKeys = Object.keys( styleList );
-              for( var i = 0; i < styleListKeys.length ; i++ ){
-                 const key = styleListKeys[i];
-                 const value = styleList[key];
-                 attrEl.style[key] = value;
-              }                  
-            }// End Style
-            /*==============================================================
-            =                         ATTRIBUTE CLASS                     =
-            ================================================================*/
-            // START PP-CLASS
-            if( attrCatch == 'class' ){              
-              expression = attrEl.getAttribute( 'pp-'+attrCatch );
-              var classList = {};
-               try{                
-                 classList = this.saferEval( expression , {...this.data}, this.methods );
-               }catch( messageError ){
-                   // console.log( messageError ); 
-               }              
-              var classListKeys = Object.keys( classList );
-              for( var i = 0; i < classListKeys.length ; i++  ){                 
-                 const key = classListKeys[i];
-                 if( typeof classList[key] == 'boolean'  ){
-                    if( classList[key] ){
-                       if( !attrEl.classList.contains(key) ){
-                           attrEl.classList.add(key)
-                       }
-                    }else{
-                       if( attrEl.classList.contains(key) ){
-                          attrEl.classList.remove(key)
-                       }
-                    }
-                 }
-              }
-            }
-            // END TYPE CLASS PP-CLASS
-
-            /*==============================================================
-            =                         ATTRIBUTE BIND                       =
-            ================================================================*/
-            if( attrCatch == 'bind' ){
-
-              expression      = attrEl.getAttribute( 'pp-'+attrCatch );
-
-              const multiAttr =  expression.split( ";" );              
-
-              multiAttr.forEach( ( sectionAttr  )=>{             
-
-                  const regex = /^([a-z,A-Z,0-9,\$,\-,\'.\"]{0,}):([a-z,A-Z,\$,\:,\?,\s,\=,\',\",0-9,\!,\(,\)]{0,})/;
-
-                  let m;
-
-                  if ((m = regex.exec( sectionAttr )) !== null) {
-
-                    if( m.length === 3 ){
-
-                      bind_attribute.push(m[1])
-
-                      bind_expression.push(m[2])
-
-                    }                              
-
-                  }
-
-              } );
-              // start for
-              for( var iterator = 0; iterator < bind_attribute.length ; iterator++ ){
-
-                  var output = "";
-
-                  try{
-                    
-                    var output = this.saferEval( bind_expression[iterator], {...this.data} , this.methods );
-
-                  }catch( messageError ){
-                      // console.log(  );
-                  }
-
-                  const nameAttr  = bind_attribute[iterator];
-
-                  if( [null,undefined,false].includes( output ) ){
-
-                    attrEl.removeAttribute(nameAttr);
-
-                  }else{
-
-                    attrEl.setAttribute( nameAttr , this.isBooleanAttr(nameAttr) ? nameAttr : output );
-
-                  };
-              }// End For                                                
-            }                                          
-            /*=====          End of ATRIBUTE BIND    ======*/
-            /**/
-
-            
-
-          } );
-
-        };
-
-      });
     }
     // ---------------------------------------------------------------------    
     /**
@@ -716,10 +678,7 @@
 
         var el = el || this.el;
 
-        var attributesCatch = [
-                  'form','text' ,'html' ,
-                  'show','disabled' ,'readonly',
-                  'required'];
+        var attributesCatch = ['text','html','show','disabled','readonly','required'];
 
               attributesCatch.forEach((attrCatch)=>{
 
@@ -729,23 +688,31 @@
 
                     attrEls.forEach( (attrEl)=>{
                       
-                      const expression = attrEl.getAttribute('pp-'+attrCatch);
+                      const expression = attrEl.getAttribute('pp-'+attrCatch);   
 
+                      //console.log( expression );                   
+
+                      if( expression != "" && expression != null ){                        
                       // Detectando Filtros separados por |
                       const expressionArray = expression.split('|').map((value)=>{
-
                         return value.trim();
-
                       });
-
                       // variable de salida 
                       var output = "";                      
-                      
+                      // Pasando $formulario
+                      var form = attrEl.getAttribute("pp-data-form");
+                      var $form = void(0);
+                      if( form != null ){
+                        if( this.$form.hasOwnProperty(form) ){
+                           $form = this.$form[form];
+                        }
+                      }                      
+                      // Pasando $formulario
                       try{
                                                 
                         output = this.saferEval(
                           expressionArray[0] ,
-                          {...this.data} ,
+                          {...this.data,...{$form:$form}} ,
                           this.methods 
                         );
 
@@ -766,8 +733,10 @@
                         }
                         // Capturando Filtros    
                       }catch( messageError ){
-                        //console.error(messageError);
+                        console.warn(messageError);
                       }
+
+
                       switch(attrCatch){
                          case 'text':
                           this.handleTextDirective( attrEl ,output );
@@ -787,11 +756,9 @@
                          case 'required':                           
                            this.handleRequiredDirective( attrEl , output );
                          break;
-                         case 'form':
-                           this.handleFormDirective( attrEl );
-                         break;
-
                       }
+                    
+                    }//END IF
 
                     });
 
@@ -804,39 +771,28 @@
     *@var HelperFunctionInitialize
     *@type Function
     *@description - Esta funcion ayuda ha inicializar los eventos 
+    *Esta funcion esta dentro del ciclo de eventos
     */
-    this.HelperFunctionInitialize = function( NativeEvent , stringAttribute ){     
-      var type       = NativeEvent.type;
+    this.HelperFunctionInitialize = function( NativeEvent , stringAttribute ){
       var expression = NativeEvent.target.getAttribute(stringAttribute);
       var $data =  { ...this.data };
+      var form = NativeEvent.target.getAttribute('pp-data-form');
+      var $form = null;      
+      if( this.$form.hasOwnProperty(form) ){$form = this.$form[form];}
+
       var $dataTemporal = Object.assign({...this.data},{
         $el    : NativeEvent.target,
         $event : NativeEvent,
-        $form  : null
+        $form  : $form
       });
       try{
         var safer = this.saferEval( expression , $dataTemporal , this.methods );        
       }catch( messageError ){
-        //console.log( messageError );
+        console.log( messageError );
       }
-      this.data = { ...this.omit( $dataTemporal , '$el' ,'$event' ) };
+      this.data = { ...omit( $dataTemporal , '$el' ,'$event' ) };
       this.detectingChangeData( $data , NativeEvent);
-    }
-    // ---------------------------------------------------------------------
-    this.TT = function( el , expression , EventName , done ){              
-          var $form = null;
-          if( el.tagName == 'FORM' ){
-            if( el.hasAttribute('name') ){              
-              if( el.getAttribute('name') != '' ){
-                if( this.$form.hasOwnProperty(el.getAttribute('name')) ){
-                  $form = this.$form[el.getAttribute('name')]
-                }
-              }
-            }   
-          }else{
-            //console.log( $el.tagname );
-          }        
-    }
+    }    
     // ---------------------------------------------------------------------
     /*
     *@var initialize
@@ -846,20 +802,18 @@
     *@param el - > Objecto  de del Dom a Inicializar
     */
     this.initialize = function( el ){
+
+      var iTime = Date.now();
+      //
       var el = el || this.el;
-      var eventsMaster = Object.values([
-          ...this.lisenEvent['mouse'],
-          ...this.lisenEvent['keyboard'],
-          ...this.lisenEvent['drag'],
-          ...this.lisenEvent['form']
-      ]);
       // forEach
-      eventsMaster.forEach( ( lEvent ) => {
+      getLisenEvent().forEach( ( lEvent ) => {
         const ElementEvent = el.querySelectorAll('[pp-'+lEvent+']');
         //if
         if( ElementEvent.length > 0  ){
             ElementEvent.forEach((ElEvent)=>{
               const expresion = ElEvent.getAttribute('pp-'+lEvent);
+              // Encapsulando
               var handle = (function(root){
                 return function handlef(NativeEvent){
                   root.HelperFunctionInitialize(NativeEvent,'pp-'+lEvent);
@@ -874,20 +828,34 @@
         if( ElementEventOnce.length > 0  ){
             ElementEventOnce.forEach((ElEventOnce)=>{
               const expresionOnce = ElEventOnce.getAttribute('pp-'+lEvent+'-once');
+              // Encapsulando
               var handleOnce = (function(root){   
                   return function handlefunction(NativeEvent){                
                     root.HelperFunctionInitialize( NativeEvent ,'pp-'+lEvent+'-once');
                     NativeEvent.target.removeEventListener(NativeEvent.type,handlefunction);
                   }
               })( this )
+
               ElEventOnce.addEventListener( lEvent , handleOnce );
             });
         }
         //if
       })
       // forEach
+
+      el.querySelectorAll("[pp-form]").forEach( ( elForm )=>{
+          elForm.setAttribute( "pp-data-form" , getAttr( elForm ,'name'  ) )             
+          this.handleFormDirective(elForm);
+          
+      } );
+      
+      // Esta Funcion solo se ejecutara una vez
+      // ya que e activan eventos donde se escuchan los  cambios      
       this.initializeModel( el );
+
       this.initializeDirectivesAll( el );
+      // Tiempo for initialize all 
+      console.log(Date.now() - iTime);
     }
   // ---------------------------------------------------------------------   
   /**
@@ -899,10 +867,11 @@
     this.initializeDirectives( el )
   }
   // ---------------------------------------------------------------------
-  this.on('dataChange',()=> this.initializeDirectivesAll( this.el ) );
-  
-  this.on('dataChange',()=> this.modelSetValue(this.el) );
-
+  this.on('dataChange',()=>{
+    this.modelSetValue(this.el)
+    this.initializeDirectivesAll( this.el )
+  });  
+  // ---------------------------------------------------------------------
   this.initialize( this.el );
   this.emit('finished');
 //----------------------------------------------------------------------------

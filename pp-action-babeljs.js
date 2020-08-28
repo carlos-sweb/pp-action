@@ -45,7 +45,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   }
 })(function (root, ppView) {
   return function (options) {
-    var _this8 = this;
+    var _this9 = this;
 
     // ------------------------------------------------
 
@@ -176,11 +176,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     this.on = function (eventName, callbacks) {
       if (typeof eventName == 'string') {
         if (typeof callbacks == 'function') {
-          this.events[eventName] = [];
+          if (!this.events.hasOwnProperty(eventName)) {
+            this.events[eventName] = [];
+          }
+
           this.events[eventName].push(callbacks);
         }
       }
-    };
+    }; // No use
+
 
     this.removeListener = function (eventName, callbacks) {
       var idx;
@@ -217,22 +221,6 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     };
     /*==  End of DEFINICION DE EVENTOS Y FUNCIONES  ==*/
 
-
-    this.setData = function (key, value) {
-      var oldValue;
-
-      if (this.data[key]) {
-        oldValue = this.data[key];
-        this.data[key] = value;
-        this.emit('updateData', key);
-        this.emit('change:' + key, oldValue, value);
-        /***
-        how use
-        this.on('change:datakey',function( oldValue , newValue ){              
-        });
-        ***/
-      }
-    };
     /*=============================================
     =   SECCION DEFINICION DE VARIABLES           =
     =============================================*/
@@ -535,6 +523,12 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         });
       }
     };
+    /**
+    *@var modelSelect
+    *@type Function
+    *@description - model que 
+    */
+
 
     this.modelSelect = function (input) {
       var _this3 = this;
@@ -587,19 +581,20 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     this.modelInput = function (input) {
       var _this4 = this;
 
-      //-------------------------------------------------------------------
       var model = input.getAttribute("pp-model");
       var debounce = input.getAttribute("pp-model-debounce");
       var debounceValue = debounce == null ? 0 : parseInt(debounce);
-      var type = input.type.toLowerCase(); //-------------------------------------------------------------------
+      var type = input.type.toLowerCase(); //-------------------------------------------------------------------        
 
       if (this.data.hasOwnProperty(model)) {
         input.value = this.data[model].toString();
       } //-------------------------------------------------------------------
+      // Funcion interna para el addEventList
 
 
       var debounceFunction = this.debounce(function (event) {
         if (_this4.data[model].toString() !== event.target.value) {
+          // Run watch
           if (_this4.watch.hasOwnProperty(model)) {
             if (typeof _this4.watch[model] == 'function') {
               try {
@@ -608,7 +603,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 console.log(errorWatch);
               }
             }
-          } // dependiendo del tipo
+          } // Run watch
 
 
           switch (type) {
@@ -619,12 +614,40 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
           _this4.emit('dataChange');
         }
-      }, debounceValue); //-------------------------------------------------------------------
+      }, debounceValue); // Funcion interna para el addEventList
+      //-------------------------------------------------------------------
 
       this.lisenEvent.keyboard.forEach(function (eventName) {
         input.addEventListener(eventName, debounceFunction);
-      }); //-------------------------------------------------------------------
-    }; // ---------------------------------------------------------------------
+      }); //-------------------------------------------------------------------    
+    }; // ------------------------------------------------------------------------
+
+    /**
+    *@var modelSetValue
+    *@type Function
+    *@description - funcion que actualiza a los input su valor, según cambie la data
+    */
+
+
+    this.modelSetValue = function (el) {
+      var _this5 = this;
+
+      var el = el || this.el;
+      var m = Object.values(Array.from(this.el.querySelectorAll("[pp-model]")));
+
+      if (m.length > 0) {
+        m.forEach(function (input) {
+          var model = input.getAttribute("pp-model");
+
+          if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(input.tagName) != -1) {
+            if (_this5.data.hasOwnProperty(model)) {
+              // no hacemos nada parece con esto por mientas
+              input.value = _this5.data[model]; // mientas efinimos a secas esoto
+            }
+          }
+        });
+      }
+    }; // --------------------------------------------------------------------------
 
     /**
     *@var initializeDirectivesComplex
@@ -637,7 +660,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectivesComplex = function (el) {
-      var _this5 = this;
+      var _this6 = this;
 
       var el = el || this.el;
       var attributesCatch = ['bind', 'style', 'class'];
@@ -656,7 +679,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               var styleList = {};
 
               try {
-                styleList = _this5.saferEval(expression, _objectSpread({}, _this5.data), _this5.methods);
+                styleList = _this6.saferEval(expression, _objectSpread({}, _this6.data), _this6.methods);
               } catch (messageError) {// console.log( messageError ); 
               }
 
@@ -680,7 +703,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               var classList = {};
 
               try {
-                classList = _this5.saferEval(expression, _objectSpread({}, _this5.data), _this5.methods);
+                classList = _this6.saferEval(expression, _objectSpread({}, _this6.data), _this6.methods);
               } catch (messageError) {// console.log( messageError ); 
               }
 
@@ -727,7 +750,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 var output = "";
 
                 try {
-                  var output = _this5.saferEval(bind_expression[iterator], _objectSpread({}, _this5.data), _this5.methods);
+                  var output = _this6.saferEval(bind_expression[iterator], _objectSpread({}, _this6.data), _this6.methods);
                 } catch (messageError) {// console.log(  );
                 }
 
@@ -736,7 +759,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 if ([null, undefined, false].includes(output)) {
                   attrEl.removeAttribute(nameAttr);
                 } else {
-                  attrEl.setAttribute(nameAttr, _this5.isBooleanAttr(nameAttr) ? nameAttr : output);
+                  attrEl.setAttribute(nameAttr, _this6.isBooleanAttr(nameAttr) ? nameAttr : output);
                 }
 
                 ;
@@ -761,11 +784,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initializeDirectives = function (el) {
-      var _this6 = this;
+      var _this7 = this;
 
       var el = el || this.el;
-      var attributesCatch = ['form', 'text', 'html', 'show', 'disabled', 'readonly', 'required' //'form'// tiene que decar para el ultimo siempre en el array
-      ];
+      var attributesCatch = ['form', 'text', 'html', 'show', 'disabled', 'readonly', 'required'];
       attributesCatch.forEach(function (attrCatch) {
         var attrEls = el.querySelectorAll('[pp-' + attrCatch + ']');
 
@@ -780,15 +802,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             var output = "";
 
             try {
-              output = _this6.saferEval(expressionArray[0], _objectSpread({}, _this6.data), _this6.methods); // Capturando Filtros                       
+              output = _this7.saferEval(expressionArray[0], _objectSpread({}, _this7.data), _this7.methods); // Capturando Filtros                       
 
               if (expressionArray.length > 1) {
                 for (var iterator = 1; iterator < expressionArray.length; iterator++) {
                   var Filtro = expressionArray[iterator];
 
-                  if (_this6.filters.hasOwnProperty(Filtro)) {
+                  if (_this7.filters.hasOwnProperty(Filtro)) {
                     if (typeof output == 'string') {
-                      output = _this6.filters[Filtro](output);
+                      output = _this7.filters[Filtro](output);
                     }
                   }
                 }
@@ -799,37 +821,37 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
             switch (attrCatch) {
               case 'text':
-                _this6.handleTextDirective(attrEl, output);
+                _this7.handleTextDirective(attrEl, output);
 
                 break;
 
               case 'show':
-                _this6.handleShowDirective(attrEl, output);
+                _this7.handleShowDirective(attrEl, output);
 
                 break;
 
               case 'html':
-                _this6.handleHtmlDirective(attrEl, output);
+                _this7.handleHtmlDirective(attrEl, output);
 
                 break;
 
               case 'disabled':
-                _this6.handleDisabledDirective(attrEl, output);
+                _this7.handleDisabledDirective(attrEl, output);
 
                 break;
 
               case 'readonly':
-                _this6.handleReadonlyDirective(attrEl, output);
+                _this7.handleReadonlyDirective(attrEl, output);
 
                 break;
 
               case 'required':
-                _this6.handleRequiredDirective(attrEl, output);
+                _this7.handleRequiredDirective(attrEl, output);
 
                 break;
 
               case 'form':
-                _this6.handleFormDirective(attrEl);
+                _this7.handleFormDirective(attrEl);
 
                 break;
             }
@@ -839,6 +861,12 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         ;
       });
     };
+    /*
+    *@var HelperFunctionInitialize
+    *@type Function
+    *@description - Esta funcion ayuda ha inicializar los eventos 
+    */
+
 
     this.HelperFunctionInitialize = function (NativeEvent, stringAttribute) {
       var type = NativeEvent.type;
@@ -887,7 +915,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.initialize = function (el) {
-      var _this7 = this;
+      var _this8 = this;
 
       var el = el || this.el;
       var eventsMaster = Object.values([].concat(_toConsumableArray(this.lisenEvent['mouse']), _toConsumableArray(this.lisenEvent['keyboard']), _toConsumableArray(this.lisenEvent['drag']), _toConsumableArray(this.lisenEvent['form']))); // forEach
@@ -903,7 +931,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               return function handlef(NativeEvent) {
                 root.HelperFunctionInitialize(NativeEvent, 'pp-' + lEvent);
               };
-            }(_this7);
+            }(_this8);
 
             ElEvent.addEventListener(lEvent, handle);
           });
@@ -921,7 +949,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 root.HelperFunctionInitialize(NativeEvent, 'pp-' + lEvent + '-once');
                 NativeEvent.target.removeEventListener(NativeEvent.type, handlefunction);
               };
-            }(_this7);
+            }(_this8);
 
             ElEventOnce.addEventListener(lEvent, handleOnce);
           });
@@ -946,7 +974,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.on('dataChange', function () {
-      return _this8.initializeDirectivesAll(_this8.el);
+      return _this9.initializeDirectivesAll(_this9.el);
+    });
+    this.on('dataChange', function () {
+      return _this9.modelSetValue(_this9.el);
     });
     this.initialize(this.el);
     this.emit('finished'); //----------------------------------------------------------------------------

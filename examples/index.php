@@ -24,7 +24,7 @@
 </section>
 <!------------------------------------------------------------------------>
 <!--<script src="pp-action.min.js" ></script>-->
-<script src="./../pp-action.js" ></script>
-<script src="index.js"></script>
+<script src="./../pp-action.js?version=<?php echo rand(0,209566085986586);?>" ></script>
+<script src="index.js?version=<?=rand(0,209566085986586);?>"></script>
 </body>
 </html>
