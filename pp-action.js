@@ -33,7 +33,12 @@
       return booleanAttributes.includes(attrName);
     },
     pm = "pp-model",
-
+    debug = function( title ){
+        console.log("++++++++++++++++++++++++++++++++++++++++++++++++++");
+        console.log(title);
+        console.log("--------------------------------------------------");
+        console.log("++++++++++++++++++++++++++++++++++++++++++++++++++");
+    },
     isRequired = function( el  ){
         return hasAttr(el,'required');
     },    
@@ -52,12 +57,12 @@
       };      
 
       if( tag == 'INPUT' && ['url'].indexOf( validType ) != -1 ){
-         return isRequired(el) && isEmpty(el.value) ? false: true;         
+         return isRequired(el) && isEmpty(el.value) ? false: isUrl( el.value, { });         
       }
 
       if( tag == 'INPUT' && ['checkbox'].indexOf(validType) != -1 ){
         // el valor se pone on ----
-        return isRequired(el) &&  el.value == 'on' ? false: true;
+        return isRequired(el) &&  el.checked == false ? false : true;
       }
 
       if( tag == 'INPUT' && ['date','number'].indexOf(validType) != -1 ){
@@ -251,6 +256,19 @@
           }
       }
       
+    },
+    getValue = function( el , type ){      
+      
+      if( getAttr(el,"type") != 'checkbox' ){
+         return el.value;
+      }else{
+
+        debug("getValue");
+
+        return "HOLAAAAAAAAAAA";
+      }
+      
+
     },
     /**
     *@var isUrl
@@ -552,6 +570,7 @@
       }
     }
     this.handleMinLengthDirective = function(el,output){
+
       if( typeof output == 'string' ){
         output = parseInt(output)
       }      
@@ -641,7 +660,7 @@
                           $required:isRequired(input),
                           $valid: isValid( input ),
                           $dirty:false,
-                          $value: input.type == 'checkbox' ? ( input.value == 'true' ):input.value                            
+                          $value:getValue(input)
                         }
 
                         this.$form[nameForm].$valid = isValidForm(this.$form[nameForm]);
@@ -806,18 +825,24 @@
 
         var { model , debounceTime , debounceValue , type , form } =  modelHelperAttributes(input);            
         //-------------------------------------------------------------------        
-        if( this.data.hasOwnProperty(model) ){          
+        if( this.data.hasOwnProperty(model) ){
+          // Ojo aqui          
           input.value = this.data[model].toString();
+          
+
           if( this.$form.hasOwnProperty(form) ){
             if( this.$form[form].hasOwnProperty(model) ){              
-              this.$form[form][model].$value = type == 'checkbox' ? (input.value == true):input.value;
+              this.$form[form][model].$value = getValue( input );
               this.$form[form].$valid = isValidForm(this.$form[form]);
             }
           }
         }
         //-------------------------------------------------------------------
         // Funcion interna para el addEventList
-        var debounceFunction = debounce(( event )=>{          
+        var debounceFunction = debounce(( event )=>{ 
+             
+          debug("debounceFunction"); 
+
           if( this.data[model].toString() !== event.target.value  ){
             // Run watch
             if( this.watch.hasOwnProperty(model) ){
@@ -836,12 +861,15 @@
               case 'password':
               case 'search':
               case '':
-                  this.data[model] = event.target.value;
+              case 'checkbox':
+
+              
+                  this.data[model] = getValue( event.target );
                   
                   if( this.$form.hasOwnProperty(form) ){
                     if( this.$form[form].hasOwnProperty(model) ){
                       // Estamos validando
-                      this.$form[form][model].$value = event.target.value;
+                      this.$form[form][model].$value = getValue(event.target);
                       this.$form[form][model].$valid = isValid(event.target);
                        if( !this.$form[form][model].$dirty ){this.$form[form][model].$dirty = true}
                       this.$form[form].$valid = isValidForm(this.$form[form]);
@@ -850,16 +878,24 @@
                     }
                   }
                   this.emit('dataChange');
-              break;
+              break;              
             }                                    
           }
         },debounceValue);
         // Funcion interna para el addEventList
         //-------------------------------------------------------------------
         //Listado de eventos que pueden cambiar el valor de este input
-        lisenEvent.keyboard.forEach(( eventName )=>{
-          input.addEventListener( eventName , debounceFunction )
-        });
+        
+        if( type == 'checkbox' ){          
+          //input.addEventListener( "click" , debounceFunction );
+         input.addEventListener( "click" , debounceFunction )
+        }else{
+          lisenEvent.keyboard.forEach(( eventName )=>{
+            input.addEventListener( eventName , debounceFunction )
+          });
+        }
+
+        
         
 
         input.addEventListener("blur",(NativeEvent)=>{
@@ -888,7 +924,12 @@
           if( this.data.hasOwnProperty(model)){
             // no hacemos nada parece con esto por mientas
             if( input.value != this.data[model].toString() ){              
-              input.value = this.data[model];
+
+              console.log("Estamos corriuendo");
+              //HACER LA EXEPCION PARA LOS CHECKB
+              // Ojo aqui
+              input.value = this.data[model].toString();
+
 
               // ---------------------------------------------------------------
               if( this.$form.hasOwnProperty(form) ){
@@ -919,6 +960,7 @@
     */
     this.initializeDirectivesComplex = function( el ){
 
+      // Aqui hay cualquier pega
 
     }
 

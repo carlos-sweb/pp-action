@@ -67,11 +67,6 @@ var viewModel = new ppView({
 			price : 5000,
 			description: "AOKAAOKAOAKOAKOAKOA"
 		}]
-	},
-	watch:{
-		username:function( newValue , oldValue , event){
-				console.log("Watch escuchando el cambio");
-		}
 	}
 
 });
