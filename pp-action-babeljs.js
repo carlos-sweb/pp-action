@@ -44,12 +44,57 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     root.ppView = factory(root, {});
   }
 })(function (root, ppView) {
+  var isBooleanAttr = function isBooleanAttr(attrName) {
+    // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
+    // Array roughly ordered by estimated usage
+    var booleanAttributes = ['disabled', 'checked', 'required', 'readonly', 'hidden', 'open', 'selected', 'autofocus', 'itemscope', 'multiple', 'novalidate', 'allowfullscreen', 'allowpaymentrequest', 'formnovalidate', 'autoplay', 'controls', 'loop', 'muted', 'playsinline', 'default', 'ismap', 'reversed', 'async', 'defer', 'nomodule'];
+    return booleanAttributes.includes(attrName);
+  },
+      pm = "pp-model",
+      isRequired = function isRequired(el) {
+    return hasAttr(el, 'required');
+  },
+      isValid = function isValid(el) {
+    var tag = el.tagName;
+    var validType = getAttr(el, 'type');
+
+    if (tag == 'INPUT' && ['text', 'search', 'password'].indexOf(validType) != -1) {
+      // Falta pattern
+      return isRequired(el) && isEmpty(el.value) ? false : hasAttr(el, 'minlength') && el.value.length < getAttr(el, 'minlength') ? false : hasAttr(el, 'maxlength') && el.value.length > getAttr(el, 'maxlength') ? false : true;
+    }
+
+    ;
+
+    if (tag == 'INPUT' && ['url'].indexOf(validType) != 1) {
+      return isRequired(el) && isEmpty(e.value) ? false : true;
+    }
+
+    if (tag == 'INPUT' && ['date', 'number']) {
+      return false;
+    } else {
+      return hasAttr(el, "required") && el.value == '' ? false : true;
+    }
+  },
+      isValidForm = function isValidForm(form) {
+    var valid = true;
+    var $form = omit(form, '$valid', '$dirty');
+
+    for (var key in $form) {
+      if (valid) {
+        valid = $form[key].$valid;
+      }
+    } //console.log(valid);
+
+
+    return valid;
+  },
+
   /**
   *@var lisenEvent
   *@type Object[Array]
   *@description listado de eventos de javascript
   */
-  var lisenEvent = {
+  lisenEvent = {
     'window': ['afterprint', 'beforeprint', 'beforeunload', 'error', 'hashchange', 'load', 'message', 'offline', 'online', 'pagehide', 'pageshow', 'popstate', 'resize', 'storage', 'unload'],
     'mouse': ['click', 'dblclick', 'mousedown', 'mousemove', 'mouseout', 'mouseover', 'mouseup', 'wheel'],
     'keyboard': ['keydown', 'keypress', 'keyup'],
@@ -57,26 +102,29 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     'clipboard': ['copy', 'cut', 'paste'],
     'media': [],
     'form': ['blur', 'change', 'contextmenu', 'focus', 'input', 'invalid', 'reset', 'search', 'select', 'submit']
-  };
+  },
+      rAttr = function rAttr(el, attr) {
+    el.removeAttribute(attr);
+  },
+
   /**
   *@var setAttr
   *@type Function
   *@description - Function que setea el valor de un attirbuto
   */
-
-  var setAttr = function setAttr(el, attr, vl) {
+  setAttr = function setAttr(el, attr, vl) {
     el.setAttribute(attr, vl);
-  };
+  },
+
   /*
   *@var hasAttr
   *@type Function
   *@description - Function que comprueba la existencia de un attributo
   */
-
-
-  var hasAttr = function hasAttr(el, attr) {
+  hasAttr = function hasAttr(el, attr) {
     return el.hasAttribute(attr);
-  };
+  },
+
   /*
   *@var getAttr
   *@type Function
@@ -85,11 +133,13 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   *  el - > type ElementHtml
   *  attr -> string , name of attribute
   */
-
-
-  var getAttr = function getAttr(el, attr) {
+  getAttr = function getAttr(el, attr) {
     return hasAttr(el, attr) ? el.getAttribute(attr) : '';
-  }; // ------------------------------------------------
+  },
+      qAll = function qAll(el, selector) {
+    return el.querySelectorAll(selector);
+  },
+      // ------------------------------------------------
 
   /*
   *@var debounce
@@ -97,9 +147,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
   *@description - Esta funcion crea un intervalo de tiempo para ser ejecutada
   * previniendo la sobre ejecutación de funciones 
   */
-
-
-  var debounce = function debounce(func, wait) {
+  debounce = function debounce(func, wait) {
     var timeoutId;
     return function () {
       if (timeoutId) {
@@ -112,15 +160,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         func.apply(context, args);
       }, wait);
     };
-  };
+  },
+
   /**
   *@var pick
   *@type Function
   *@description - Funcion que se encarga de devolver las keys dadas en un objeto
   */
-
-
-  var pick = function pick() {
+  pick = function pick() {
     var args = [].slice.call(arguments);
     var result = {};
 
@@ -148,15 +195,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     }
 
     ;
-  };
+  },
+
   /*
   *@var omit
   *@type Function
   *@description - Function que omite keys dadas para un objeto
   */
-
-
-  var omit = function omit() {
+  omit = function omit() {
     var args = [].slice.call(arguments);
     var result = {};
 
@@ -185,15 +231,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     }
 
     ;
-  };
+  },
+
   /*
   *@var getLisenEvent
   *@type Function
   *@
   */
-
-
-  var getLisenEvent = function getLisenEvent() {
+  getLisenEvent = function getLisenEvent() {
     var result = [];
 
     for (var i in lisenEvent) {
@@ -201,16 +246,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     }
 
     return result;
-  };
+  },
+
   /*
   *@var modelHelperAttributes
   *@type Function
   *@description - Capturar los datos necesarios para la entrada de input
   */
-
-
-  var modelHelperAttributes = function modelHelperAttributes(el) {
-    var model = getAttr(el, "pp-model"),
+  modelHelperAttributes = function modelHelperAttributes(el) {
+    var model = getAttr(el, pm),
         debounceTime = getAttr(el, "pp-model-debounce"),
         form = getAttr(el, "pp-data-form"),
         type = hasAttr(el, 'type') ? el.type.toLowerCase() : "";
@@ -221,6 +265,90 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       type: type,
       form: form
     };
+  },
+      isString = function isString(value) {
+    return typeof value == 'string';
+  },
+      isFunction = function isFunction(value) {
+    return typeof value == 'function';
+  },
+      isEmpty = function isEmpty(value) {
+    if (value == null) {
+      return !0;
+    }
+
+    if (typeof value == 'string') {
+      return value.length == 0 ? !0 : !1;
+    }
+
+    if (_typeof(value) == 'object' || typeof value == 'array') {
+      if (typeof value.length == 'undefined') {
+        return Object.values(value).length == 0 ? !0 : !1;
+      } else {
+        return value.length == 0 ? !0 : !1;
+      }
+    }
+  },
+
+  /**
+  *@var isUrl
+  *@type Function
+  *@param 
+  *      @value {String} valor para confirmar que sea un url
+  *      @options {Object}
+  *               schemes {Array}  = [http,https,ftp] || pp-data-url-schemes
+  *               allowLocal { boolean } = http://localhost || pp-data-url-allowLocal 
+  *               allowDataUrl {boolean} = ?id=20 || pp-data-url-allowDataUrl
+  */
+  isUrl = function isUrl(value, options) {
+    if (!isString(value)) {
+      return false;
+    }
+
+    var options = options || {},
+        schemes = options.schemes || ['http', 'https'],
+        allowLocal = options.allowLocal || false,
+        allowDataUrl = options.allowDataUrl || false; // https://gist.github.com/dperini/729294
+
+    var regex = "^" + // protocol identifier
+    "(?:(?:" + schemes.join("|") + ")://)" + // user:pass authentication
+    "(?:\\S+(?::\\S*)?@)?" + "(?:";
+    var tld = "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))";
+
+    if (allowLocal) {
+      tld += "?";
+    } else {
+      regex += // IP address exclusion
+      // private & local networks
+      "(?!(?:10|127)(?:\\.\\d{1,3}){3})" + "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" + "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})";
+    }
+
+    regex += // IP address dotted notation octets
+    // excludes loopback network 0.0.0.0
+    // excludes reserved space >= 224.0.0.0
+    // excludes network & broacast addresses
+    // (first & last IP address of each class)
+    "(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])" + "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" + "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" + "|" + // host name
+    "(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)" + // domain name
+    "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*" + tld + ")" + // port number
+    "(?::\\d{2,5})?" + // resource path
+    "(?:[/?#]\\S*)?" + "$";
+
+    if (allowDataUrl) {
+      // RFC 2397
+      var mediaType = "\\w+\\/[-+.\\w]+(?:;[\\w=]+)*";
+      var urlchar = "[A-Za-z0-9-_.!~\\*'();\\/?:@&=+$,%]*";
+      var dataurl = "data:(?:" + mediaType + ")?(?:;base64)?," + urlchar;
+      regex = "(?:" + regex + ")|(?:^" + dataurl + "$)";
+    }
+
+    var PATTERN = new RegExp(regex, 'i');
+
+    if (!PATTERN.exec(value)) {
+      return false;
+    } else {
+      return true;
+    }
   }; // Main Function
 
 
@@ -258,8 +386,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     **/
 
     this.on = function (eventName, callbacks) {
-      if (typeof eventName == 'string') {
-        if (typeof callbacks == 'function') {
+      if (isString(eventName)) {
+        if (isFunction(callbacks)) {
           if (!this.events.hasOwnProperty(eventName)) {
             this.events[eventName] = [];
           }
@@ -362,16 +490,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     **/
 
     this.template = options.template || null;
-
-    this.isBooleanAttr = function (attrName) {
-      // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
-      // Array roughly ordered by estimated usage
-      var booleanAttributes = ['disabled', 'checked', 'required', 'readonly', 'hidden', 'open', 'selected', 'autofocus', 'itemscope', 'multiple', 'novalidate', 'allowfullscreen', 'allowpaymentrequest', 'formnovalidate', 'autoplay', 'controls', 'loop', 'muted', 'playsinline', 'default', 'ismap', 'reversed', 'async', 'defer', 'nomodule'];
-      return booleanAttributes.includes(attrName);
-    };
     /*===== FIN DE LA SECCION DE DEFINICION DE VARIABLES ======*/
     // DEFINIMOS EL innerHTML del elemento con el Template cargado
-
 
     this.el.innerHTML = this.template;
     /*
@@ -417,6 +537,84 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         }
       }
     };
+    /**
+      <input type="button">
+      <input type="checkbox">
+      <input type="color">
+      <input type="date">
+      <input type="datetime-local">
+      <input type="email">
+      <input type="file">
+      <input type="hidden">
+      <input type="image">
+      <input type="month">
+      <input type="number">
+      <input type="password">
+      <input type="radio">
+      <input type="range">
+      <input type="reset">
+      <input type="search">
+      
+      <input type="tel">
+      <input type="text">
+      <input type="time">
+      <input type="url">
+      <input type="week">
+       <input type="submit">
+    */
+
+
+    this.handleMaxLengthDirective = function (el, output) {
+      if (typeof output == 'string') {
+        output = parseInt(output);
+      }
+
+      if (typeof output == 'number' && ['INPUT'].indexOf(el.tagName) != -1) {
+        if (Number.isInteger(output) && output > 0) {
+          if (['text', 'password', 'search'].indexOf(el.type) != -1) {
+            setAttr(el, "maxlength", output.toString());
+          }
+        }
+      }
+
+      if (typeof output == 'number' && ['TEXTAREA'].indexOf(el.tagName) != -1) {
+        if (Number.isInteger(output) && output > 0) {
+          setAttr(el, "maxlength", output.toString());
+        }
+      }
+    };
+
+    this.handleMinLengthDirective = function (el, output) {
+      if (typeof output == 'string') {
+        output = parseInt(output);
+      }
+
+      if (typeof output == 'number' && ['INPUT'].indexOf(el.tagName) != -1) {
+        if (Number.isInteger(output) && output > 0) {
+          if (['text', 'password', 'search'].indexOf(el.type) != -1) {
+            setAttr(el, "minlength", output.toString());
+          }
+        }
+      }
+
+      if (typeof output == 'number' && ['TEXTAREA'].indexOf(el.tagName) != -1) {
+        if (Number.isInteger(output) && output > 0) {
+          setAttr(el, "minlength", output.toString());
+        }
+      }
+    };
+
+    this.handleMaxDirective = function (el, output) {
+      if (el.type == 'number') {}
+
+      if (el.type == 'date') {}
+    };
+
+    this.handleMinDirective = function (el, output) {
+      if (el.type == 'number') {}
+
+      if (el.type == 'date') {}
+    };
     /*
     *@var
     *@type Function
@@ -428,42 +626,54 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       var _this = this;
 
       if (hasAttr(el, 'name')) {
+        // -----------------------------------------------------------------------------------
+        el.addEventListener("submit", function (event) {
+          if (hasAttr(el, 'pp-submit-prevent')) {
+            event.preventDefault();
+          }
+        }); // -----------------------------------------------------------------------------------
+
+        el.addEventListener("reset", function (event) {
+          console.log("Escucnahdo reset");
+        });
         var nameForm = getAttr(el, 'name');
 
-        if (typeof nameForm == 'string' && nameForm != '') {
+        if (isString(nameForm) && !isEmpty(nameForm)) {
           // ---------------------------------------------------------------------------------
           if (!this.$form.hasOwnProperty(nameForm)) {
             this.$form[nameForm] = {
               $valid: true,
               $dirty: false
             };
+            this.$form[nameForm].$valid = isValidForm(this.$form[nameForm]);
           }
 
           ; // ---------------------------------------------------------------------------------
           // realizamos un enlace con el formulario que esta asociado a este elemento                              
 
-          var othersDirectives = Array.from(el.querySelectorAll("[pp-text],[pp-show],[pp-class],[pp-model],[pp-click],[pp-disabled]"));
+          var othersDirectives = Array.from(qAll(el, "[pp-text],[pp-show],[pp-class],[pp-model],[pp-click],[pp-disabled]"));
           othersDirectives.forEach(function (e) {
-            return !e.hasAttribute('pp-data-form') && e.setAttribute('pp-data-form', nameForm);
+            return !hasAttr(e, 'pp-data-form') && setAttr(e, 'pp-data-form', nameForm);
           }); // realizamos un enlace con el formulario que esta asociado a este elemento
 
-          var inputs = Array.from(el.querySelectorAll("input[pp-model],select[pp-model],textarea[pp-model]")); // ---------------------------------------------------------------------------------
+          var inputs = Array.from(qAll(el, "input[pp-model],select[pp-model],textarea[pp-model]")); // ---------------------------------------------------------------------------------
 
           inputs.forEach(function (input) {
             // Agregamos esta información                
-            if (input.hasAttribute('pp-model')) {
-              var model = input.getAttribute('pp-model');
+            if (input.hasAttribute(pm)) {
+              var model = input.getAttribute(pm);
 
-              if (typeof model == 'string' && model != '') {
+              if (isString(model) && model != '') {
                 if (_this.data.hasOwnProperty(model)) {
                   // aqui hay que crear un sistema de validacion
                   // Check format value                        
                   _this.$form[nameForm][model] = {
-                    $required: input.hasAttribute("required"),
-                    $valid: input.hasAttribute("required") && input.value == '' ? false : true,
+                    $required: isRequired(input),
+                    $valid: isValid(input),
                     $dirty: false,
                     $value: input.value
                   };
+                  _this.$form[nameForm].$valid = isValidForm(_this.$form[nameForm]);
                 }
               }
             }
@@ -482,15 +692,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     this.handleRequiredDirective = function (el, output) {
       if (typeof output == 'boolean' && ['INPUT', 'TEXTAREA'].indexOf(el.tagName) != -1) {
         // ------------------------------------------------------------------------------
-        var updateRequired = function updateRequired(__el) {
+        var updateRequired = function updateRequired(__el, property) {
           // ****************************************************************************
           var nameForm = getAttr(__el, 'pp-data-form'),
-              model = getAttr(__el, 'pp-model'); // ****************************************************************************
+              model = getAttr(__el, pm); // ****************************************************************************
 
           if (this.$form.hasOwnProperty(nameForm)) {
             if (this.$form[nameForm].hasOwnProperty(model)) {
-              if (this.$form[nameForm][model].$required != output) {
-                this.$form[nameForm][model].$required = output;
+              if (this.$form[nameForm][model][property] != output) {
+                this.$form[nameForm][model][property] = output;
                 this.emit("dataChange");
               }
             }
@@ -499,30 +709,16 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         }; // ------------------------------------------------------------------------------            
 
 
-        if (output == true && el.hasAttribute('required') == false) {
-          el.setAttribute('required', '');
-          updateRequired.bind(this)(el);
+        if (output == true && hasAttr(el, 'required') == false) {
+          setAttr(el, 'required');
+          updateRequired.bind(this)(el, '$required');
         } // ******************************************************************************
 
 
         if (output == false && el.hasAttribute('required') == true) {
-          el.removeAttribute('required'); // Aqui hay que hacer algo
-          // ----------------------------------------------------------------------------            
-
-          var nameForm = getAttr(el, 'pp-data-form');
-          var model = getAttr(el, 'pp-model'); // ----------------------------------------------------------------------------
-
-          if (this.$form.hasOwnProperty(nameForm)) {
-            if (this.$form[nameForm].hasOwnProperty(model)) {
-              if (this.$form[nameForm][model].$required != output) {
-                this.$form[nameForm][model].$required = output;
-                this.emit("dataChange");
-              }
-            }
-          } // ----------------------------------------------------------------------------               
-          // Aqui hay que hacer algo
-
-        } // ******************************************************************************                                                   
+          rAttr(el, 'required');
+          updateRequired.bind(this)(el, '$required');
+        } // ******************************************************************************                                                      
 
       }
     };
@@ -535,7 +731,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
     this.handleReadonlyDirective = function (el, output) {
       if (typeof output == 'boolean' && ['INPUT', 'TEXTAREA'].indexOf(el.tagName) != -1) {
-        output ? setAttr(el, 'readonly', '') : el.removeAttribute('readonly');
+        output ? setAttr(el, 'readonly', '') : rAttr(el, 'readonly');
       }
     };
     /**
@@ -547,7 +743,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
     this.handleDisabledDirective = function (el, output) {
       if (typeof output == 'boolean' && ['INPUT', 'SELECT', 'BUTTON', 'TEXTAREA'].indexOf(el.tagName) != -1) {
-        el.disabled = output;
+        output ? setAttr(el, "disabled", "") : rAttr(el, "disabled");
       }
     };
     /*
@@ -599,20 +795,12 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     this.initializeModel = function (el) {
       var _this2 = this;
 
-      var tagInputAccept = ['INPUT', 'SELECT', 'TEXTAREA'],
-          el = el || this.el,
-          attrEls = el.querySelectorAll('[pp-model]');
-
-      if (attrEls.length > 0) {
-        attrEls.forEach(function (attrEl) {
-          var tg = attrEl.tagName;
-
-          if (tagInputAccept.indexOf(tg) != -1) {
-            tg == 'INPUT' && _this2.modelInput(attrEl);
-            tg == 'SELECT' && _this2.modelSelect(attrEl); //tg == 'TEXTAREA' && ( this.modelTextArea( attrEl ) );       
-          }
-        });
-      }
+      el = el || this.el, qAll(el, 'input[pp-model],select[pp-model],textarea[pp-model]').forEach(function (attrEl) {
+        var tg = attrEl.tagName;
+        tg == 'INPUT' && _this2.modelInput(attrEl);
+        tg == 'SELECT' && _this2.modelSelect(attrEl);
+        tg == 'TEXTAREA' && _this2.modelInput(attrEl);
+      });
     };
     /**
     *@var modelSelect
@@ -630,20 +818,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           debounceValue = _modelHelperAttribute.debounceValue,
           form = _modelHelperAttribute.form;
 
-      var options = input.querySelectorAll("option");
-
-      if (options.length > 0) {
-        options.forEach(function (option) {
-          if (option.value == _this3.data[model].toString()) {
-            option.setAttribute("selected", "");
-          } else {
-            if (option.hasAttribute("selected")) {
-              option.removeAttribute("selected");
-            }
+      qAll(input, "option").forEach(function (option) {
+        if (option.value == _this3.data[model].toString()) {
+          setAttr(option, "selected", "");
+        } else {
+          if (hasAttr(option, "selected")) {
+            rAttr(option, "selected");
           }
-        });
-      }
-
+        }
+      });
       var debounceFunction = debounce(function (event) {
         var format = event.target.getAttribute("pp-model-format");
 
@@ -689,6 +872,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         if (this.$form.hasOwnProperty(form)) {
           if (this.$form[form].hasOwnProperty(model)) {
             this.$form[form][model].$value = input.value;
+            this.$form[form].$valid = isValidForm(this.$form[form]);
           }
         }
       } //-------------------------------------------------------------------
@@ -711,18 +895,29 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
           switch (type) {
             case 'text':
+            case 'password':
+            case 'search':
+            case '':
               _this4.data[model] = event.target.value;
 
               if (_this4.$form.hasOwnProperty(form)) {
                 if (_this4.$form[form].hasOwnProperty(model)) {
+                  // Estamos validando
                   _this4.$form[form][model].$value = event.target.value;
+                  _this4.$form[form][model].$valid = isValid(event.target);
+
+                  if (!_this4.$form[form][model].$dirty) {
+                    _this4.$form[form][model].$dirty = true;
+                  }
+
+                  _this4.$form[form].$valid = isValidForm(_this4.$form[form]); // estamos cambiando el valor
                 }
               }
 
+              _this4.emit('dataChange');
+
               break;
           }
-
-          _this4.emit('dataChange');
         }
       }, debounceValue); // Funcion interna para el addEventList
       //-------------------------------------------------------------------
@@ -730,6 +925,16 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
       lisenEvent.keyboard.forEach(function (eventName) {
         input.addEventListener(eventName, debounceFunction);
+      });
+      input.addEventListener("blur", function (NativeEvent) {
+        var form = getAttr(NativeEvent.target, "pp-data-form");
+        var model = getAttr(NativeEvent.target, pm);
+
+        if (!_this4.$form[form][model].$dirty) {
+          _this4.$form[form][model].$dirty = true;
+
+          _this4.emit("dataChange");
+        }
       }); //-------------------------------------------------------------------    
     }; // ------------------------------------------------------------------------
 
@@ -760,6 +965,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               if (_this5.$form.hasOwnProperty(form)) {
                 if (_this5.$form[form].hasOwnProperty(model)) {
                   _this5.$form[form][model].$value = _this5.data[model];
+                  _this5.$form[form][model].$valid = isValid(input);
+                  _this5.$form[form].$valid = isValidForm(_this5.$form[form]);
                 }
               } // ---------------------------------------------------------------
 
@@ -792,90 +999,92 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       var _this6 = this;
 
       var el = el || this.el;
-      var attributesCatch = ['text', 'html', 'show', 'disabled', 'readonly', 'required'];
-      attributesCatch.forEach(function (attrCatch) {
-        var attrEls = el.querySelectorAll('[pp-' + attrCatch + ']');
+      ['maxlength', 'minlength', 'max', 'min', 'text', 'html', 'show', 'disabled', 'readonly', 'required'].forEach(function (attrCatch) {
+        qAll(el, '[pp-' + attrCatch + ']').forEach(function (attrEl) {
+          var expression = getAttr(attrEl, 'pp-' + attrCatch);
 
-        if (attrEls.length > 0) {
-          attrEls.forEach(function (attrEl) {
-            var expression = attrEl.getAttribute('pp-' + attrCatch); //console.log( expression );                   
+          if (expression != "" && expression != null) {
+            // Detectando Filtros separados por |
+            var expressionArray = expression.split('|').map(function (value) {
+              return value.trim();
+            }); // variable de salida 
 
-            if (expression != "" && expression != null) {
-              // Detectando Filtros separados por |
-              var expressionArray = expression.split('|').map(function (value) {
-                return value.trim();
-              }); // variable de salida 
+            var output = ""; // Pasando $formulario
 
-              var output = ""; // Pasando $formulario
+            var form = attrEl.getAttribute("pp-data-form");
+            var $form = void 0;
 
-              var form = attrEl.getAttribute("pp-data-form");
-              var $form = void 0;
-
-              if (form != null) {
-                if (_this6.$form.hasOwnProperty(form)) {
-                  $form = _this6.$form[form];
-                }
-              } // Pasando $formulario
+            if (form != null) {
+              if (_this6.$form.hasOwnProperty(form)) {
+                $form = _this6.$form[form];
+              }
+            } // Pasando $formulario
 
 
-              try {
-                output = _this6.saferEval(expressionArray[0], _objectSpread(_objectSpread({}, _this6.data), {
-                  $form: $form
-                }), _this6.methods); // Capturando Filtros                       
+            try {
+              output = _this6.saferEval(expressionArray[0], _objectSpread(_objectSpread({}, _this6.data), {
+                $form: $form
+              }), _this6.methods); // Capturando Filtros                       
 
-                if (expressionArray.length > 1) {
-                  for (var iterator = 1; iterator < expressionArray.length; iterator++) {
-                    var Filtro = expressionArray[iterator];
+              if (expressionArray.length > 1) {
+                for (var iterator = 1; iterator < expressionArray.length; iterator++) {
+                  var Filtro = expressionArray[iterator];
 
-                    if (_this6.filters.hasOwnProperty(Filtro)) {
-                      if (typeof output == 'string') {
-                        output = _this6.filters[Filtro](output);
-                      }
+                  if (_this6.filters.hasOwnProperty(Filtro)) {
+                    if (isString(output)) {
+                      output = _this6.filters[Filtro](output);
                     }
                   }
-                } // Capturando Filtros    
+                }
+              } // Capturando Filtros    
 
-              } catch (messageError) {
-                console.warn(messageError);
-              }
+            } catch (messageError) {
+              console.warn(messageError);
+            }
 
-              switch (attrCatch) {
-                case 'text':
-                  _this6.handleTextDirective(attrEl, output);
+            if (attrCatch == "text") {
+              _this6.handleTextDirective(attrEl, output);
+            }
 
-                  break;
+            if (attrCatch == "show") {
+              _this6.handleShowDirective(attrEl, output);
+            }
 
-                case 'show':
-                  _this6.handleShowDirective(attrEl, output);
+            if (attrCatch == "disabled") {
+              _this6.handleDisabledDirective(attrEl, output);
+            }
 
-                  break;
+            if (attrCatch == "readonly") {
+              _this6.handleReadonlyDirective(attrEl, output);
+            }
 
-                case 'html':
-                  _this6.handleHtmlDirective(attrEl, output);
+            if (attrCatch == "required") {
+              _this6.handleRequiredDirective(attrEl, output);
+            }
 
-                  break;
+            if (attrCatch == "html") {
+              _this6.handleHtmlDirective(attrEl, output);
+            } // Forms input
 
-                case 'disabled':
-                  _this6.handleDisabledDirective(attrEl, output);
 
-                  break;
+            if (attrCatch == "maxlength") {
+              _this6.handleMaxLengthDirective(attrEl, output);
+            }
 
-                case 'readonly':
-                  _this6.handleReadonlyDirective(attrEl, output);
+            if (attrCatch == "minlength") {
+              _this6.handleMinLengthDirective(attrEl, output);
+            }
 
-                  break;
+            if (attrCatch == "max") {
+              _this6.handleMaxDirective(attrEl, output);
+            }
 
-                case 'required':
-                  _this6.handleRequiredDirective(attrEl, output);
+            if (attrCatch == "min") {
+              _this6.handleMinDirective(attrEl, output);
+            }
+          } //END IF
 
-                  break;
-              }
-            } //END IF
-
-          });
-        }
-
-        ;
+        });
       });
     };
     /*
@@ -887,11 +1096,12 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
     this.HelperFunctionInitialize = function (NativeEvent, stringAttribute) {
-      var expression = NativeEvent.target.getAttribute(stringAttribute);
+      var target = NativeEvent.target;
+      var expression = getAttr(target, stringAttribute);
 
       var $data = _objectSpread({}, this.data);
 
-      var form = NativeEvent.target.getAttribute('pp-data-form');
+      var form = getAttr(target, 'pp-data-form');
       var $form = null;
 
       if (this.$form.hasOwnProperty(form)) {
@@ -899,7 +1109,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       }
 
       var $dataTemporal = Object.assign(_objectSpread({}, this.data), {
-        $el: NativeEvent.target,
+        $el: target,
         $event: NativeEvent,
         $form: $form
       });
@@ -912,7 +1122,23 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
       this.data = _objectSpread({}, omit($dataTemporal, '$el', '$event'));
       this.detectingChangeData($data, NativeEvent);
-    }; // ---------------------------------------------------------------------
+    };
+    /**
+    *
+    *
+    */
+
+
+    var h = function h(root, attr, remove) {
+      return function hf(NativeEvent) {
+        root.HelperFunctionInitialize(NativeEvent, attr);
+
+        if (remove) {
+          NativeEvent.target.removeEventListener(NativeEvent.type, hf);
+        }
+      };
+    }; //* function que ayuda al this.initialize *//
+    // ---------------------------------------------------------------------
 
     /*
     *@var initialize
@@ -926,49 +1152,27 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     this.initialize = function (el) {
       var _this7 = this;
 
-      var iTime = Date.now(); //
-
+      var iTime = Date.now();
       var el = el || this.el; // forEach
 
       getLisenEvent().forEach(function (lEvent) {
-        var ElementEvent = el.querySelectorAll('[pp-' + lEvent + ']'); //if
+        //if        
+        qAll(el, '[pp-' + lEvent + ']').forEach(function (ElEvent) {
+          var attrNameEvent = 'pp-' + lEvent,
+              expresion = getAttr(ElEvent, attrNameEvent);
+          ElEvent.addEventListener(lEvent, h(_this7, attrNameEvent, false));
+        }); //if        
+        //if        
 
-        if (ElementEvent.length > 0) {
-          ElementEvent.forEach(function (ElEvent) {
-            var expresion = ElEvent.getAttribute('pp-' + lEvent); // Encapsulando
+        qAll(el, '[pp-' + lEvent + '-once]').forEach(function (ElEventOnce) {
+          var attrNameEventOnce = 'pp-' + lEvent + '-once';
+          var expresionOnce = getAttr(ElEventOnce, attrNameEventOnce);
+          ElEventOnce.addEventListener(lEvent, h(_this7, attrNameEventOnce, true));
+        }); //if
+      }); // forEach      
 
-            var handle = function (root) {
-              return function handlef(NativeEvent) {
-                root.HelperFunctionInitialize(NativeEvent, 'pp-' + lEvent);
-              };
-            }(_this7);
-
-            ElEvent.addEventListener(lEvent, handle);
-          });
-        } //if
-
-
-        var ElementEventOnce = el.querySelectorAll('[pp-' + lEvent + '-once]'); //if
-
-        if (ElementEventOnce.length > 0) {
-          ElementEventOnce.forEach(function (ElEventOnce) {
-            var expresionOnce = ElEventOnce.getAttribute('pp-' + lEvent + '-once'); // Encapsulando
-
-            var handleOnce = function (root) {
-              return function handlefunction(NativeEvent) {
-                root.HelperFunctionInitialize(NativeEvent, 'pp-' + lEvent + '-once');
-                NativeEvent.target.removeEventListener(NativeEvent.type, handlefunction);
-              };
-            }(_this7);
-
-            ElEventOnce.addEventListener(lEvent, handleOnce);
-          });
-        } //if
-
-      }); // forEach
-
-      el.querySelectorAll("[pp-form]").forEach(function (elForm) {
-        elForm.setAttribute("pp-data-form", getAttr(elForm, 'name'));
+      qAll(el, "[pp-form]").forEach(function (elForm) {
+        setAttr(elForm, "pp-data-form", getAttr(elForm, 'name'));
 
         _this7.handleFormDirective(elForm);
       }); // Esta Funcion solo se ejecutara una vez
