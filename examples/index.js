@@ -18,14 +18,21 @@ var viewModel = new ppView({
 					</div>
 
 					<div class="control">
+						<label for="" >Clave</label>
+						<input required class="input" type="date" pp-model="cumple" />
+						<p pp-text="!$form.cumple.$valid && $form.cumple.$dirty ? 'Este Campo es Obligatorio':'&nbsp;' " class="help is-danger"></p>
+					</div>
+
+					<div class="control">
 						<label for="">Description ( Optional ) </label>
 						<textarea class="textarea" pp-model="description" ></textarea>	
 					</div>	
 
-					<label class="checkbox">
-					<input required pp-model="iagree" type="checkbox">
-					I agree to the <a href="#">terms and conditions</a>
-					</label>
+					<div class="control">
+						<label for="">Description ( Optional ) </label>
+						<textarea class="textarea" pp-model="description" ></textarea>	
+					</div>	
+				
 
 				</div>
 				<button pp-disabled="!$form.$valid" class="button is-link" type="submit" >Enviar</button>
@@ -52,7 +59,9 @@ var viewModel = new ppView({
 
 		password : '',
 
-		iagree:false,
+		iagree:true,
+
+		cumple:'',
 
 		description:'My description is : ',
 

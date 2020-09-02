@@ -32,13 +32,7 @@
       const booleanAttributes = ['disabled', 'checked', 'required', 'readonly', 'hidden', 'open', 'selected', 'autofocus', 'itemscope', 'multiple', 'novalidate', 'allowfullscreen', 'allowpaymentrequest', 'formnovalidate', 'autoplay', 'controls', 'loop', 'muted', 'playsinline', 'default', 'ismap', 'reversed', 'async', 'defer', 'nomodule'];
       return booleanAttributes.includes(attrName);
     },
-    pm = "pp-model",
-    debug = function( title ){
-        console.log("++++++++++++++++++++++++++++++++++++++++++++++++++");
-        console.log(title);
-        console.log("--------------------------------------------------");
-        console.log("++++++++++++++++++++++++++++++++++++++++++++++++++");
-    },
+    pm = "pp-model",    
     isRequired = function( el  ){
         return hasAttr(el,'required');
     },    
@@ -257,18 +251,12 @@
       }
       
     },
-    getValue = function( el , type ){      
-      
-      if( getAttr(el,"type") != 'checkbox' ){
-         return el.value;
+    getValue = function( el  ){
+      if( getAttr(el,"type") == "checkbox" ){
+        return el.checked;
       }else{
-
-        debug("getValue");
-
-        return "HOLAAAAAAAAAAA";
-      }
-      
-
+        return el.value;
+      }      
     },
     /**
     *@var isUrl
@@ -627,7 +615,7 @@
         // -----------------------------------------------------------------------------------
 
         el.addEventListener("reset",(event)=>{
-            console.log("Escucnahdo reset");
+            //console.log("Escucnahdo reset");
         });
 
         var nameForm = getAttr( el , 'name' );
@@ -662,10 +650,7 @@
                           $dirty:false,
                           $value:getValue(input)
                         }
-
                         this.$form[nameForm].$valid = isValidForm(this.$form[nameForm]);
-
-
                     }
                 }
               }
@@ -826,8 +811,14 @@
         var { model , debounceTime , debounceValue , type , form } =  modelHelperAttributes(input);            
         //-------------------------------------------------------------------        
         if( this.data.hasOwnProperty(model) ){
-          // Ojo aqui          
-          input.value = this.data[model].toString();
+          // Ojo aqui
+
+          if( getAttr(input,"type") == "checkbox" ){            
+            input.value = hasAttr(input,"checked") ? true : false;  
+          }else{
+            input.value = this.data[model].toString();  
+          }
+          
           
 
           if( this.$form.hasOwnProperty(form) ){
@@ -839,21 +830,30 @@
         }
         //-------------------------------------------------------------------
         // Funcion interna para el addEventList
-        var debounceFunction = debounce(( event )=>{ 
-             
-          debug("debounceFunction"); 
-
-          if( this.data[model].toString() !== event.target.value  ){
+        var debounceFunction = debounce(( event )=>{    
+                   
+          if( getAttr(event.target,"type") == "checkbox" ){
+            if( event.target.checked ){
+              console.log("Es Verdadero");
+              console.log(event.target.value);
+            }else{
+              console.log("Es falso");
+            }
+          }
+        
+          if( this.data[model].toString() !==  getValue(event.target)   ){
             // Run watch
             if( this.watch.hasOwnProperty(model) ){
                 if( typeof this.watch[model] == 'function' ){
                   try{
-                    this.watch[model]( event.target.value ,this.data[model] , event);
+                    this.watch[model]( getValue(event.target ) ,this.data[model] , event);
                   }catch(errorWatch){
                     console.log(errorWatch);
                   }                  
                 }
-            }
+            }            
+
+
 
             // Run watch
             switch( type ){
@@ -861,9 +861,8 @@
               case 'password':
               case 'search':
               case '':
-              case 'checkbox':
-
-              
+              case 'date':              
+                     
                   this.data[model] = getValue( event.target );
                   
                   if( this.$form.hasOwnProperty(form) ){
@@ -878,7 +877,11 @@
                     }
                   }
                   this.emit('dataChange');
-              break;              
+              break;
+              case "checkbox":
+                console.log("Casando a checkbox");
+                this.emit('dataChange');
+              break;
             }                                    
           }
         },debounceValue);
@@ -887,8 +890,9 @@
         //Listado de eventos que pueden cambiar el valor de este input
         
         if( type == 'checkbox' ){          
-          //input.addEventListener( "click" , debounceFunction );
-         input.addEventListener( "click" , debounceFunction )
+
+         input.addEventListener("change", debounceFunction );
+
         }else{
           lisenEvent.keyboard.forEach(( eventName )=>{
             input.addEventListener( eventName , debounceFunction )
@@ -917,19 +921,18 @@
     */
     this.modelSetValue = function( el ){
       var el = el || this.el;
-      var m = Object.values(Array.from(this.el.querySelectorAll("[pp-model]")));
+      
+      var m = Object.values(Array.from( qAll( el  , "[pp-model]" )));
+
       m.forEach((input)=>{
         var { form , model } = modelHelperAttributes( input );        
         if( [ 'INPUT', 'SELECT', 'TEXTAREA' ].indexOf(input.tagName) != -1 ){
           if( this.data.hasOwnProperty(model)){
-            // no hacemos nada parece con esto por mientas
-            if( input.value != this.data[model].toString() ){              
-
-              console.log("Estamos corriuendo");
+            // no hacemos nada parece con esto por mientas            
+            if( input.value != this.data[model].toString() ){
               //HACER LA EXEPCION PARA LOS CHECKB
-              // Ojo aqui
+              // Ojo aqui              
               input.value = this.data[model].toString();
-
 
               // ---------------------------------------------------------------
               if( this.$form.hasOwnProperty(form) ){

@@ -14,7 +14,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "npx babel pp-action.js --config-file ./babel.config.json  -o pp-action-babeljs.js && uglifyjs pp-action-babeljs.js -o pp-action.min.js && terser pp-action-babeljs.js -o pp-action.terser.min.js && cp pp-action.min.js ./examples/pp-action.min.js"
+    "build": "npx babel pp-action.js --config-file ./babel.config.json  -o pp-action-babeljs.js && uglifyjs pp-action-babeljs.js -o pp-action.min.js && terser pp-action-babeljs.js -o pp-action.terser.min.js && cp pp-action.min.js ./examples/pp-action.min.js",
+    "build-simple": "npx babel pp-simple-action.js --config-file ./babel.config.json  -o pp-simple-action-babeljs.js && uglifyjs pp-simple-action-babeljs.js -o pp-simple-action.min.js && terser pp-simple-action-babeljs.js -o pp-simple-action.terser.min.js && cp pp-simple-action.min.js ./examples/pp-simple-action/pp-simple-action.min.js"
   },
   "repository": {
     "type": "git",
